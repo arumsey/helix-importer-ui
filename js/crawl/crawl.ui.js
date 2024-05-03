@@ -230,30 +230,46 @@ const attachListeners = () => {
               }
             } catch (error) {
               // try to detect redirects
-              const res = await fetch(replacedURL);
-              if (res.ok) {
-                if (res.redirected) {
-                  // eslint-disable-next-line no-console
-                  console.error(`Cannot crawl ${originalURL} - redirected to ${res.url}`, error);
-                  crawlStatus.rows.push({
-                    url: originalURL,
-                    status: 'Redirect',
-                    redirect: res.url,
-                  });
+              try {
+                let requestInit = {};
+                if (config.fields['crawl-advanced-disable-cors']) {
+                  requestInit = {
+                    mode: 'no-cors',
+                  };
+                }
+                const res = await fetch(replacedURL, requestInit);
+
+                if (res.ok) {
+                  if (res.redirected) {
+                    // eslint-disable-next-line no-console
+                    console.error(`Cannot crawl ${originalURL} - redirected to ${res.url}`, error);
+                    crawlStatus.rows.push({
+                      url: originalURL,
+                      status: 'Redirect',
+                      redirect: res.url,
+                    });
+                  } else {
+                    // eslint-disable-next-line no-console
+                    console.error(`Cannot crawl ${originalURL} - probably a code error on ${res.url}`, error);
+                    crawlStatus.rows.push({
+                      url: originalURL,
+                      status: `Code error: ${res.status}`,
+                    });
+                  }
                 } else {
                   // eslint-disable-next-line no-console
-                  console.error(`Cannot crawl ${originalURL} - probably a code error on ${res.url}`, error);
+                  console.error(`Cannot crawl ${originalURL} - page may not exist (status ${res.status})`, error);
                   crawlStatus.rows.push({
                     url: originalURL,
-                    status: `Code error: ${res.status}`,
+                    status: `Invalid: ${res.status}`,
                   });
                 }
-              } else {
+              } catch (e) {
                 // eslint-disable-next-line no-console
-                console.error(`Cannot crawl ${originalURL} - page may not exist (status ${res.status})`, error);
+                console.error(`Cannot crawl ${originalURL} - an error occurred fetching`, e);
                 crawlStatus.rows.push({
                   url: originalURL,
-                  status: `Invalid: ${res.status}`,
+                  status: 'Error',
                 });
               }
             }
