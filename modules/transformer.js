@@ -52,6 +52,8 @@ export default class Transformer {
         // add block to DOM
         if (target === 'append') {
           main.append(block);
+        } else if (target === 'prepend') {
+          main.prepend(block);
         } else {
           element.replaceWith(block);
         }
