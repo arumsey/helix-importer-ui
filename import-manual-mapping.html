@@ -33,8 +33,8 @@
             <!-- IMPORT SECTION -->
             <section class="import">
                 <div class="section-title">
-                    <h2>Import - Manual Mapping</h2>
-                    <p>Manually map page sections to existing block.</p>
+                    <h2>Import - Section Mapping</h2>
+                    <p>Map page sections to existing blocks.</p>
                     <sp-divider size="l"></sp-divider>
                 </div>
                 <div class="section-cols">
@@ -53,18 +53,6 @@
 
                                         <sp-field-label for="import-pageload-timeout">Page load timeout</sp-field-label>
                                         <sp-number-field class="option-field" id="import-pageload-timeout" value="100" min="0" step="100" format-options='{ "style": "unit", "unit": "millisecond", "unitDisplay": "short" }'></sp-number-field>
-
-                                        <div class="local-save">
-                                            <sp-checkbox class="option-field" id="import-local-docx" checked>
-                                                Save as docx
-                                            </sp-checkbox>
-                                            <sp-checkbox class="option-field" id="import-local-html">
-                                                Save as HTML
-                                            </sp-checkbox>
-                                            <sp-checkbox class="option-field" id="import-local-md">
-                                                Save as Markdown
-                                            </sp-checkbox>
-                                        </div>
 
                                         <sp-checkbox class="option-field" id="import-enable-js">
                                             Enable JavaScript
@@ -85,22 +73,19 @@
 
                             <sp-button-group>
                                 <sp-button id="detect-sections-button">Detect Sections</sp-button>
-                                <sp-button id="import-doimport-button">Import</sp-button>
+                                <sp-button id="save-transformation-button">Save</sp-button>
                             </sp-button-group>
                         </form>
                         <span id="folder-name"></span>
                         <div class="page-preview hidden">
                             <sp-divider size="s"></sp-divider>
                             <h3>Page preview</h3>
-                            <iframe id="import-content-frame" frameborder="0"></iframe>
+                            <iframe id="import-content-frame"></iframe>
                         </div>
                     </div>
                     <div class="section-col">
                         <sp-tabs selected="mapping-editor">
                             <sp-tab label="Mapping" value="mapping-editor"></sp-tab>
-                            <sp-tab label="Preview" value="import-preview"></sp-tab>
-                            <sp-tab label="Markdown" value="import-markdown"></sp-tab>
-                            <sp-tab label="HTML" value="import-html"></sp-tab>
                             <div id="import-file-picker-container"></div>
                             <sp-tab-panel value="mapping-editor">
                                 <sp-theme color="light" scale="medium">
@@ -117,29 +102,7 @@
                                     </div>
                                 </sp-theme>
                             </sp-tab-panel>
-                            <sp-tab-panel value="import-preview">
-                                <sp-theme color="light" scale="medium">
-                                    <div id="import-markdown-preview"></div>
-                                </sp-theme>
-                            </sp-tab-panel>
-                            <sp-tab-panel value="import-markdown">
-                                <div data-panel="source">
-                                    <div class="code">
-                                        <textarea id="import-markdown-source" rows="4" cols="10"></textarea>
-                                    </div>
-                                </div>
-                            </sp-tab-panel>
-                            <sp-tab-panel value="import-html">
-                                <div data-panel="source">
-                                    <div class="code">
-                                        <textarea id="import-transformed-html" rows="4" cols="10"></textarea>
-                                    </div>
-                                </div>
-                            </sp-tab-panel>
                         </sp-tabs>
-                        <sp-button-group>
-                            <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
-                        </sp-button-group>
                     </div>
                 </div>
             </section>

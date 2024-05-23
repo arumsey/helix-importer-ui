@@ -44,6 +44,7 @@ const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker
 
 // manual mapping elements
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
+const SAVE_BUTTON = document.getElementById('save-transformation-button');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 
 const REPORT_FILENAME = 'import-report.xlsx';
@@ -56,23 +57,29 @@ let isSaveLocal = false;
 let dirHandle = null;
 
 const setupUI = () => {
-  ui.transformedEditor = CodeMirror.fromTextArea(TRANSFORMED_HTML_TEXTAREA, {
-    lineNumbers: true,
-    mode: 'htmlmixed',
-    theme: 'base16-dark',
-  });
-  ui.transformedEditor.setSize('100%', '100%');
+  if (TRANSFORMED_HTML_TEXTAREA) {
+    ui.transformedEditor = CodeMirror.fromTextArea(TRANSFORMED_HTML_TEXTAREA, {
+      lineNumbers: true,
+      mode: 'htmlmixed',
+      theme: 'base16-dark',
+    });
+    ui.transformedEditor.setSize('100%', '100%');
+  }
 
-  ui.markdownEditor = CodeMirror.fromTextArea(MD_SOURCE_TEXTAREA, {
-    lineNumbers: true,
-    mode: 'markdown',
-    theme: 'base16-dark',
-  });
-  ui.markdownEditor.setSize('100%', '100%');
+  if (MD_SOURCE_TEXTAREA) {
+    ui.markdownEditor = CodeMirror.fromTextArea(MD_SOURCE_TEXTAREA, {
+      lineNumbers: true,
+      mode: 'markdown',
+      theme: 'base16-dark',
+    });
+    ui.markdownEditor.setSize('100%', '100%');
+  }
 
-  ui.markdownPreview = MD_PREVIEW_PANEL;
-  // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
-  ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
+  if (MD_PREVIEW_PANEL) {
+    ui.markdownPreview = MD_PREVIEW_PANEL;
+    // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
+    ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
+  }
 
   SPTABS.selected = 'mapping-editor';
 };
@@ -200,11 +207,21 @@ const initImportStatus = () => {
 };
 
 const disableProcessButtons = () => {
-  IMPORT_BUTTON.disabled = true;
+  if (IMPORT_BUTTON) {
+    IMPORT_BUTTON.disabled = true;
+  }
+  if (DETECT_BUTTON) {
+    DETECT_BUTTON.disabled = true;
+  }
 };
 
 const enableProcessButtons = () => {
-  IMPORT_BUTTON.disabled = false;
+  if (IMPORT_BUTTON) {
+    IMPORT_BUTTON.disabled = false;
+  }
+  if (DETECT_BUTTON) {
+    DETECT_BUTTON.disabled = false;
+  }
 };
 
 const getProxyURLSetup = (url, origin) => {
@@ -611,7 +628,7 @@ const attachListeners = () => {
     await postImportStep();
   });
 
-  IMPORT_BUTTON.addEventListener('click', (async () => {
+  IMPORT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
 
     if (IS_BULK) {
@@ -793,10 +810,10 @@ const attachListeners = () => {
     processNext();
   }));
 
-  DETECT_BUTTON.addEventListener('click', (async () => {
+  DETECT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
-    DOWNLOAD_IMPORT_REPORT_BUTTON.classList.add('hidden');
-    PREVIEW_CONTAINER.classList.remove('hidden');
+    DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
+    PREVIEW_CONTAINER?.classList.remove('hidden');
     MAPPING_EDITOR_SECTIONS.innerHTML = '';
 
     disableProcessButtons();
@@ -956,13 +973,51 @@ const attachListeners = () => {
     processNext();
   }));
 
-  IMPORTFILEURL_FIELD.addEventListener('change', async (event) => {
+  SAVE_BUTTON?.addEventListener('click', () => {
+    const { originalURL } = frame.dataset;
+
+    const transformCfg = {
+      cleanup : {
+        start: [],
+        end: [],
+      },
+      blocks: [],
+    }
+
+    // look for existing mapping data
+    try {
+      const mapping = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
+      if (mapping && mapping.url === originalURL) {
+        // add clean up sections
+        transformCfg.cleanup.start = mapping.mapping
+          .filter((m) => m.mapping === 'exclude')
+          .map((m) => m.xpath);
+
+        // process blocks
+        transformCfg.blocks = mapping.mapping
+          .filter((m) => m.mapping !== 'exclude' || m.mapping !== 'defaultContent')
+          .map((m) => ({
+            type: m.mapping,
+            selectors: [],
+            params: {},
+          }));
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`Error loading sections mapping data for url ${originalURL}`, e);
+    }
+
+
+  });
+
+
+  IMPORTFILEURL_FIELD?.addEventListener('change', async (event) => {
     if (config.importer) {
       await config.importer.setImportFileURL(event.target.value);
     }
   });
 
-  DOWNLOAD_IMPORT_REPORT_BUTTON.addEventListener('click', (async () => {
+  DOWNLOAD_IMPORT_REPORT_BUTTON?.addEventListener('click', (async () => {
     const buffer = await getReport();
     const a = document.createElement('a');
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
