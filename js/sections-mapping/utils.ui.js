@@ -1,10 +1,14 @@
 /**
  * Retrieve the Mapping for the provided URL from the local-storage.  A mapping is an array with
- * objects that contain the attributes of the 'box' including:
- * - xpath
+ * objects that contain:
+ * - identifiers
+ *   - xpath:  xpath of the box in the DOM
+ *   - id: id, if available, of the box
+ *   - classes: all the classes, if available, of the box
  * - boxId
  * - numCols
  * - numRows
+ * - color
  * - mapping (block name)
  * @param url The current URL
  * @returns {mapping|undefined} Return the mapping as an array (not string) or 'undefined' if it
@@ -23,7 +27,7 @@ function getImporterSectionsMapping(url) {
           return urlMapping.mapping;
         }
       } else if (allMappings.url && allMappings.url === url) {
-        // Handle the old way (one single url saved at a time)
+        // Handle the old way (single url saved)
         return allMappings.mapping;
       }
     }
