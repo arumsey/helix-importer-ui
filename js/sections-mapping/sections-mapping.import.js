@@ -4,6 +4,7 @@
 
 import * as parsers from './parsers/parsers.js';
 import { getImporterSectionsMapping } from './utils.ui.js';
+import { getElementByXpath } from '../shared/utils.js';
 
 /**
  * functions
@@ -19,10 +20,6 @@ export function generateDocumentPath({ document, url }) {
     .replace(/\.html$/, '')
     .replace(/[^a-z0-9/]/gm, '-');
   return WebImporter.FileUtils.sanitizePath(p);
-}
-
-function getElementByXpath(document, path) {
-  return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
 
 /**
