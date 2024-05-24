@@ -17,8 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationConfigFromMapping } from "./utils.import.js";
-import { TransformFactory } from "../shared/transformfactory.js";
+import { buildTransformationConfigFromMapping } from './utils.import.js';
+import { TransformFactory } from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -51,6 +51,7 @@ const IS_EXPRESS = document.querySelector('.import-express') !== null;
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
 const SAVE_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
+const OPENURL_BUTTON = document.getElementById('express-open-url-button');
 
 const REPORT_FILENAME = 'import-report.xlsx';
 
@@ -1029,7 +1030,7 @@ const attachListeners = () => {
   }));
 
   SAVE_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
-    const originalURL = config.fields['import-url']
+    const originalURL = config.fields['import-url'];
 
     const importDirHandle = await getDirectoryHandle();
     await importDirHandle.requestPermission({
@@ -1044,7 +1045,6 @@ const attachListeners = () => {
     // save import json
     const transformCfg = buildTransformationConfigFromMapping(mapping);
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
-
   });
 
   IMPORTFILEURL_FIELD?.addEventListener('change', async (event) => {
@@ -1061,6 +1061,13 @@ const attachListeners = () => {
     a.setAttribute('download', REPORT_FILENAME);
     a.click();
   }));
+
+  OPENURL_BUTTON.addEventListener('click', () => {
+    const importURL = config.fields['import-url'];
+    if (importURL && importURL.length > 0) {
+      window.open(importURL, '_blank');
+    }
+  });
 
   if (SPTABS) {
     SPTABS.addEventListener('change', () => {
