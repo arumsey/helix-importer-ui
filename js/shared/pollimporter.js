@@ -61,6 +61,10 @@ export default class PollImporter {
   async #loadProjectTransform() {
     const $this = this;
 
+    if (!this.config.importFileURL) {
+      return false;
+    }
+
     const loadModule = async (projectTransformFileURL) => {
       const mod = await import(projectTransformFileURL);
       if (mod.default) {
@@ -165,11 +169,16 @@ export default class PollImporter {
   async transform() {
     this.running = true;
     const {
-      includeDocx, url, document, params,
+      includeDocx, url, document, params, transform,
     } = this.transformation;
 
-    // eslint-disable-next-line no-console
-    console.log(`Starting transformation of ${url} with import file: ${this.projectTransformFileURL || 'none (default)'}`);
+    if (transform) {
+      // eslint-disable-next-line no-console
+      console.log(`Starting express transformation of ${url}`);
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`Starting transformation of ${url} with import file: ${this.projectTransformFileURL || 'none (default)'}`);
+    }
     try {
       let results;
 
@@ -179,7 +188,7 @@ export default class PollImporter {
         const out = await WebImporter.html2docx(
           url,
           documentClone,
-          this.projectTransform,
+          transform || this.projectTransform,
           params,
         );
 
@@ -193,7 +202,7 @@ export default class PollImporter {
         const out = await WebImporter.html2md(
           url,
           documentClone,
-          this.projectTransform,
+          transform || this.projectTransform,
           params,
         );
         results = Array.isArray(out) ? out : [out];
@@ -223,17 +232,19 @@ export default class PollImporter {
     document,
     includeDocx = false,
     params,
+    transform,
   }) {
     this.transformation = {
       url,
       document,
       includeDocx,
       params,
+      transform,
     };
   }
 
   async setImportFileURL(importFileURL) {
-    this.config.importFileURL = importFileURL;
+    this.config.importFileURL = importFileURL || '';
     await this.#loadProjectTransform();
   }
 

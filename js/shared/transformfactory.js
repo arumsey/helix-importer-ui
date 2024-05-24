@@ -41,6 +41,7 @@ export const TransformFactory = {
    * @return {Object} A transformation object for use during an import.
    */
   create: (rules) => ({
+    REQUIRED_STYLES: [],
     transform: (source) => {
       const element = WebImporter.Transformer.transform(rules, source);
       return [{
