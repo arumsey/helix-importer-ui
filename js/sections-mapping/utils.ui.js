@@ -13,6 +13,9 @@
 function getImporterSectionsMapping(url) {
   try {
     const allMappings = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
+    if (!url) {
+      return allMappings;
+    }
     if (allMappings) {
       if (Array.isArray(allMappings)) {
         const urlMapping = allMappings.find((sm) => sm.url === url);

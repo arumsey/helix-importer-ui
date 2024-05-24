@@ -17,6 +17,7 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
+import { buildTransformationConfigFromMapping } from "./utils.import.js";
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -45,7 +46,7 @@ const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker
 
 // manual mapping elements
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
-const SAVE_BUTTON = document.getElementById('save-transformation-button');
+const SAVE_TRANSFORMATION_BUTTON = document.getElementById('save-transformation-button');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 
 const REPORT_FILENAME = 'import-report.xlsx';
@@ -968,40 +969,23 @@ const attachListeners = () => {
     processNext();
   }));
 
-  SAVE_BUTTON?.addEventListener('click', () => {
-    const { originalURL } = frame.dataset;
+  SAVE_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
+    const originalURL = config.fields['import-url']
 
-    const transformCfg = {
-      cleanup : {
-        start: [],
-        end: [],
-      },
-      blocks: [],
-    }
+    const importDirHandle = await getDirectoryHandle();
+    await importDirHandle.requestPermission({
+      mode: 'readwrite',
+    });
 
-    // look for existing mapping data
-    try {
-      const mapping = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
-      if (mapping && mapping.url === originalURL) {
-        // add clean up sections
-        transformCfg.cleanup.start = mapping.mapping
-          .filter((m) => m.mapping === 'exclude')
-          .map((m) => m.xpath);
+    // save sections mapping data
+    const allMappings = getImporterSectionsMapping() || [];
+    await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(allMappings, null, 2));
 
-        // process blocks
-        transformCfg.blocks = mapping.mapping
-          .filter((m) => m.mapping !== 'exclude' || m.mapping !== 'defaultContent')
-          .map((m) => ({
-            type: m.mapping,
-            selectors: [],
-            params: {},
-          }));
-      }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(`Error loading sections mapping data for url ${originalURL}`, e);
-    }
+    const mapping = getImporterSectionsMapping(originalURL) || [];
+    const transformCfg = buildTransformationConfigFromMapping(mapping);
 
+    // save import json
+    await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
 
   });
 
