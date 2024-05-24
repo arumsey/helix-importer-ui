@@ -17,6 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
+import { buildTransformationConfigFromMapping } from "./utils.import.js";
+import { TransformFactory } from "../shared/transformfactory.js";
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -32,6 +34,7 @@ const FOLDERNAME_SPAN = document.getElementById('folder-name');
 const TRANSFORMED_HTML_TEXTAREA = document.getElementById('import-transformed-html');
 const MD_SOURCE_TEXTAREA = document.getElementById('import-markdown-source');
 const MD_PREVIEW_PANEL = document.getElementById('import-markdown-preview');
+const TRANSFORMATION_TEXTAREA = document.getElementById('import-transform-source');
 
 const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs`);
 
@@ -44,7 +47,9 @@ const BULK_URLS_LIST = document.querySelector('#import-result ul');
 const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker-container');
 
 // manual mapping elements
+const IS_EXPRESS = document.querySelector('.import-express') !== null;
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
+const SAVE_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 
 const REPORT_FILENAME = 'import-report.xlsx';
@@ -57,49 +62,75 @@ let isSaveLocal = false;
 let dirHandle = null;
 
 const setupUI = () => {
-  ui.transformedEditor = CodeMirror.fromTextArea(TRANSFORMED_HTML_TEXTAREA, {
-    lineNumbers: true,
-    mode: 'htmlmixed',
-    theme: 'base16-dark',
-  });
-  ui.transformedEditor.setSize('100%', '100%');
+  if (TRANSFORMED_HTML_TEXTAREA) {
+    ui.transformedEditor = CodeMirror.fromTextArea(TRANSFORMED_HTML_TEXTAREA, {
+      lineNumbers: true,
+      mode: 'htmlmixed',
+      theme: 'base16-dark',
+    });
+    ui.transformedEditor.setSize('100%', '100%');
+  }
 
-  ui.markdownEditor = CodeMirror.fromTextArea(MD_SOURCE_TEXTAREA, {
-    lineNumbers: true,
-    mode: 'markdown',
-    theme: 'base16-dark',
-  });
-  ui.markdownEditor.setSize('100%', '100%');
+  if (MD_SOURCE_TEXTAREA) {
+    ui.markdownEditor = CodeMirror.fromTextArea(MD_SOURCE_TEXTAREA, {
+      lineNumbers: true,
+      mode: 'markdown',
+      theme: 'base16-dark',
+    });
+    ui.markdownEditor.setSize('100%', '100%');
+  }
 
-  ui.markdownPreview = MD_PREVIEW_PANEL;
-  // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
-  ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
+  if (TRANSFORMATION_TEXTAREA) {
+    ui.jsonEditor = CodeMirror.fromTextArea(TRANSFORMATION_TEXTAREA, {
+      lineNumbers: false,
+      mode: 'javascript',
+      json: true,
+      readOnly: true,
+      theme: 'base16-dark',
+    });
+    ui.jsonEditor.setSize('100%', '100%');
+  }
+
+  if (MD_PREVIEW_PANEL) {
+    ui.markdownPreview = MD_PREVIEW_PANEL;
+    // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
+    ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
+  }
 
   SPTABS.selected = 'mapping-editor';
 };
 
-const loadResult = ({ md, html: outputHTML }) => {
+const loadResult = ({ md, html: outputHTML }, originalURL) => {
   if (outputHTML) {
-    ui.transformedEditor.setValue(html_beautify(outputHTML.replaceAll(/\s+/g, ' '), {
+    ui.transformedEditor?.setValue(html_beautify(outputHTML.replaceAll(/\s+/g, ' '), {
       indent_size: '2',
     }));
   }
 
   if (md) {
-    ui.markdownEditor.setValue(md || '');
+    ui.markdownEditor?.setValue(md || '');
 
-    const mdPreview = WebImporter.md2html(md);
-    // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
-    ui.markdownPreview.innerHTML = mdPreview;
-
-    // remove existing classes and styles
-    Array.from(ui.markdownPreview.querySelectorAll('[class], [style]')).forEach((t) => {
-      t.removeAttribute('class');
-      t.removeAttribute('style');
-    });
+    if (ui.markdownPreview) {
+      const mdPreview = WebImporter.md2html(md);
+      // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
+      ui.markdownPreview.innerHTML = mdPreview;
+      // remove existing classes and styles
+      Array.from(ui.markdownPreview.querySelectorAll('[class], [style]')).forEach((t) => {
+        t.removeAttribute('class');
+        t.removeAttribute('style');
+      });
+    }
   } else {
-    ui.markdownEditor.setValue('No preview available.');
-    ui.markdownPreview.innerHTML = 'No preview available.';
+    ui.markdownEditor?.setValue('No preview available.');
+    if (ui.markdownPreview) {
+      ui.markdownPreview.innerHTML = 'No preview available.';
+    }
+  }
+
+  if (ui.jsonEditor) {
+    const mapping = getImporterSectionsMapping(originalURL) || [];
+    const transform = buildTransformationConfigFromMapping(mapping);
+    ui.jsonEditor.setValue(JSON.stringify(transform, null, 2));
   }
 };
 
@@ -137,11 +168,11 @@ const updateImporterUI = (results, originalURL) => {
         if (results.length > 0) {
           picker.addEventListener('change', (e) => {
             const r = results.filter((i) => i.path === e.target.value)[0];
-            loadResult(r);
+            loadResult(r, originalURL);
           });
         }
 
-        loadResult(results[0]);
+        loadResult(results[0], originalURL);
       } else if (status === 'redirect') {
         alert.warning(`No page imported: ${results[0].from} redirects to ${results[0].to}`);
       }
@@ -201,11 +232,21 @@ const initImportStatus = () => {
 };
 
 const disableProcessButtons = () => {
-  IMPORT_BUTTON.disabled = true;
+  if (IMPORT_BUTTON) {
+    IMPORT_BUTTON.disabled = true;
+  }
+  if (DETECT_BUTTON) {
+    DETECT_BUTTON.disabled = true;
+  }
 };
 
 const enableProcessButtons = () => {
-  IMPORT_BUTTON.disabled = false;
+  if (IMPORT_BUTTON) {
+    IMPORT_BUTTON.disabled = false;
+  }
+  if (DETECT_BUTTON) {
+    DETECT_BUTTON.disabled = false;
+  }
 };
 
 const getProxyURLSetup = (url, origin) => {
@@ -695,7 +736,7 @@ const attachListeners = () => {
     await postImportStep();
   });
 
-  IMPORT_BUTTON.addEventListener('click', (async () => {
+  IMPORT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
 
     if (IS_BULK) {
@@ -705,10 +746,10 @@ const attachListeners = () => {
       } else {
         PREVIEW_CONTAINER.classList.add('hidden');
       }
-      DOWNLOAD_IMPORT_REPORT_BUTTON.classList.remove('hidden');
+      DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
     } else {
-      DOWNLOAD_IMPORT_REPORT_BUTTON.classList.add('hidden');
-      PREVIEW_CONTAINER.classList.remove('hidden');
+      DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
+      SAVE_TRANSFORMATION_BUTTON.classList.add('hidden');
     }
 
     disableProcessButtons();
@@ -806,11 +847,18 @@ const attachListeners = () => {
                   });
 
                   if (onLoadSucceeded) {
+                    let transform = null;
+                    if (IS_EXPRESS) {
+                      // auto generate transformation config
+                      const mapping = getImporterSectionsMapping(originalURL) || [];
+                      transform = TransformFactory.create(buildTransformationConfigFromMapping(mapping));
+                    }
                     config.importer.setTransformationInput({
                       url: replacedURL,
                       document: frame.contentDocument,
                       includeDocx,
                       params: { originalURL },
+                      transform,
                     });
                     await config.importer.transform();
                   }
@@ -869,7 +917,7 @@ const attachListeners = () => {
       } else {
         const frame = getContentFrame();
         frame.removeEventListener('transformation-complete', processNext);
-        DOWNLOAD_IMPORT_REPORT_BUTTON.classList.remove('hidden');
+        DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
         enableProcessButtons();
         toggleLoadingButton(IMPORT_BUTTON);
       }
@@ -877,10 +925,10 @@ const attachListeners = () => {
     processNext();
   }));
 
-  DETECT_BUTTON.addEventListener('click', (async () => {
+  DETECT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
-    DOWNLOAD_IMPORT_REPORT_BUTTON.classList.add('hidden');
-    PREVIEW_CONTAINER.classList.remove('hidden');
+    DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
+    PREVIEW_CONTAINER?.classList.remove('hidden');
     MAPPING_EDITOR_SECTIONS.innerHTML = '';
 
     disableProcessButtons();
@@ -1040,13 +1088,32 @@ const attachListeners = () => {
     processNext();
   }));
 
-  IMPORTFILEURL_FIELD.addEventListener('change', async (event) => {
+  SAVE_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
+    const originalURL = config.fields['import-url']
+
+    const importDirHandle = await getDirectoryHandle();
+    await importDirHandle.requestPermission({
+      mode: 'readwrite',
+    });
+
+    const mapping = getImporterSectionsMapping(originalURL) || [];
+
+    // save sections mapping data for current URL
+    await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(mapping, null, 2));
+
+    // save import json
+    const transformCfg = buildTransformationConfigFromMapping(mapping);
+    await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
+
+  });
+
+  IMPORTFILEURL_FIELD?.addEventListener('change', async (event) => {
     if (config.importer) {
       await config.importer.setImportFileURL(event.target.value);
     }
   });
 
-  DOWNLOAD_IMPORT_REPORT_BUTTON.addEventListener('click', (async () => {
+  DOWNLOAD_IMPORT_REPORT_BUTTON?.addEventListener('click', (async () => {
     const buffer = await getReport();
     const a = document.createElement('a');
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -1059,8 +1126,9 @@ const attachListeners = () => {
     SPTABS.addEventListener('change', () => {
       // required for code to load in editors
       setTimeout(() => {
-        ui.transformedEditor.refresh();
-        ui.markdownEditor.refresh();
+        ui.transformedEditor?.refresh();
+        ui.markdownEditor?.refresh();
+        ui.jsonEditor?.refresh();
       }, 1);
     });
   }
