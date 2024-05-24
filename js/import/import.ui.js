@@ -1007,18 +1007,16 @@ const attachListeners = () => {
       mode: 'readwrite',
     });
 
-    // save sections mapping data
-    const allMappings = getImporterSectionsMapping() || [];
-    await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(allMappings, null, 2));
-
     const mapping = getImporterSectionsMapping(originalURL) || [];
-    const transformCfg = buildTransformationConfigFromMapping(mapping);
+
+    // save sections mapping data for current URL
+    await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(mapping, null, 2));
 
     // save import json
+    const transformCfg = buildTransformationConfigFromMapping(mapping);
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
 
   });
-
 
   IMPORTFILEURL_FIELD?.addEventListener('change', async (event) => {
     if (config.importer) {
