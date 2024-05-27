@@ -1,0 +1,21 @@
+[
+  {
+    "domId": "page-header",
+    "xpath": "/html[1]/body[1]/div[2]/header[1]",
+    "mapping": "exclude"
+  },
+  {
+    "domClasses": "page-footer",
+    "xpath": "/html[1]/body[1]/div[2]/footer[1]",
+    "mapping": "exclude"
+  },
+  {
+    "domClasses": "sidebar.sidebar-main",
+    "xpath": "/html[1]/body[1]/div[2]/main[1]/div[1]/div[1]/div[2]/div[2]",
+    "mapping": "exclude"
+  },
+  {
+    "selector": "main .breadcrumbs",
+    "mapping": "exclude"
+  }
+]

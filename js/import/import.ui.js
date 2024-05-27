@@ -17,7 +17,7 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationConfigFromMapping } from "./utils.import.js";
+import { buildTransformationRulesFromMapping } from "./rules.import.js";
 import { TransformFactory } from "../shared/transformfactory.js";
 
 const PARENT_SELECTOR = '.import';
@@ -129,7 +129,7 @@ const loadResult = ({ md, html: outputHTML }, originalURL) => {
 
   if (ui.jsonEditor) {
     const mapping = getImporterSectionsMapping(originalURL) || [];
-    const transform = buildTransformationConfigFromMapping(mapping);
+    const transform = buildTransformationRulesFromMapping(mapping);
     ui.jsonEditor.setValue(JSON.stringify(transform, null, 2));
   }
 };
@@ -851,7 +851,7 @@ const attachListeners = () => {
                     if (IS_EXPRESS) {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
-                      transform = TransformFactory.create(buildTransformationConfigFromMapping(mapping));
+                      transform = TransformFactory.create(buildTransformationRulesFromMapping(mapping));
                     }
                     config.importer.setTransformationInput({
                       url: replacedURL,
@@ -1102,7 +1102,7 @@ const attachListeners = () => {
     await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(mapping, null, 2));
 
     // save import json
-    const transformCfg = buildTransformationConfigFromMapping(mapping);
+    const transformCfg = buildTransformationRulesFromMapping(mapping);
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
 
   });
