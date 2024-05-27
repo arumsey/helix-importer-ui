@@ -51,6 +51,7 @@ const IS_EXPRESS = document.querySelector('.import-express') !== null;
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
 const SAVE_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
+const OPENURL_BUTTON = document.getElementById('express-open-url-button');
 
 const REPORT_FILENAME = 'import-report.xlsx';
 
@@ -282,7 +283,7 @@ const postSuccessfulStep = async (results, originalURL) => {
       if (config.fields['import-local-docx'] && docx) {
         files.push({ type: 'docx', filename, data: docx });
       } else if (config.fields['import-local-html'] && html) {
-        files.push({ type: 'html', filename: `${path}.html`, data: `<html><head></head>${html}</html>` });
+        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head></head>${html}</html>` });
       } else if (config.fields['import-local-md'] && md) {
         files.push({ type: 'md', filename: `${path}.md`, data: md });
       }
@@ -453,11 +454,13 @@ const detectSections = async (src, frame) => {
   );
   const selectedSection = { id: null };
 
+  // eslint-disable-next-line no-console
   console.log('sections', sections);
 
   const selectedSectionProxy = new Proxy(selectedSection, {
     set: (target, key, value) => {
       const oldValue = target[key];
+      // eslint-disable-next-line no-console
       console.log(`${key} set from ${selectedSection.id} to ${value}`);
       target[key] = value;
       const oldOverlayDiv = getContentFrame().contentDocument.querySelector(`.xp-overlay[data-box-id="${oldValue}"]`);
@@ -851,7 +854,9 @@ const attachListeners = () => {
                     if (IS_EXPRESS) {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
-                      transform = TransformFactory.create(buildTransformationRulesFromMapping(mapping));
+                      transform = TransformFactory.create(
+                          buildTransformationRulesFromMapping(mapping)
+                      );
                     }
                     config.importer.setTransformationInput({
                       url: replacedURL,
@@ -1089,7 +1094,7 @@ const attachListeners = () => {
   }));
 
   SAVE_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
-    const originalURL = config.fields['import-url']
+    const originalURL = config.fields['import-url'];
 
     const importDirHandle = await getDirectoryHandle();
     await importDirHandle.requestPermission({
@@ -1104,7 +1109,6 @@ const attachListeners = () => {
     // save import json
     const transformCfg = buildTransformationRulesFromMapping(mapping);
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
-
   });
 
   IMPORTFILEURL_FIELD?.addEventListener('change', async (event) => {
@@ -1121,6 +1125,13 @@ const attachListeners = () => {
     a.setAttribute('download', REPORT_FILENAME);
     a.click();
   }));
+
+  OPENURL_BUTTON?.addEventListener('click', () => {
+    const importURL = config.fields['import-url'];
+    if (importURL && importURL.length > 0) {
+      window.open(importURL, '_blank');
+    }
+  });
 
   if (SPTABS) {
     SPTABS.addEventListener('change', () => {

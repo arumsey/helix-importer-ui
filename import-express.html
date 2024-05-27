@@ -40,11 +40,18 @@
                 <div class="section-cols">
                     <div class="section-col">
                         <form class="import-form">
-                            <sp-field-label for="import-url" required>URL</sp-field-label>
-                            <sp-textfield class="option-field" id="import-url" type="url">
-                                <sp-help-text slot="help-text">https://www.example.com</sp-help-text>
-                                <sp-help-text slot="negative-help-text">Please enter a valid URL.</sp-help-text>
-                            </sp-textfield>
+                            <div id="express-url-inputs">
+                                <div>
+                                    <sp-field-label for="import-url" required>URL</sp-field-label>
+                                    <sp-textfield class="option-field" id="import-url" type="url">
+                                        <sp-help-text slot="help-text">https://www.example.com</sp-help-text>
+                                        <sp-help-text slot="negative-help-text">Please enter a valid URL.</sp-help-text>
+                                    </sp-textfield>
+                                </div>
+                                <sp-button id="express-open-url-button" variant="secondary" title="Open URL in new tab" icon-only>
+                                    <sp-icon-link-out>Open</sp-icon-link-out>
+                                </sp-button>
+                            </div>
                             <sp-accordion>
                                 <sp-accordion-item label="Load Options">
                                     <div>
@@ -83,7 +90,7 @@
                         <div class="page-preview hidden">
                             <sp-divider size="s"></sp-divider>
                             <h3>Page preview</h3>
-                            <iframe id="import-content-frame" frameborder="0"></iframe>
+                            <iframe id="import-content-frame"></iframe>
                         </div>
                     </div>
                     <div class="section-col">
