@@ -283,7 +283,7 @@ const postSuccessfulStep = async (results, originalURL) => {
       if (config.fields['import-local-docx'] && docx) {
         files.push({ type: 'docx', filename, data: docx });
       } else if (config.fields['import-local-html'] && html) {
-        files.push({ type: 'html', filename: `${path}.html`, data: `<html><head></head>${html}</html>` });
+        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head></head>${html}</html>` });
       } else if (config.fields['import-local-md'] && md) {
         files.push({ type: 'md', filename: `${path}.md`, data: md });
       }
@@ -454,11 +454,13 @@ const detectSections = async (src, frame) => {
   );
   const selectedSection = { id: null };
 
+  // eslint-disable-next-line no-console
   console.log('sections', sections);
 
   const selectedSectionProxy = new Proxy(selectedSection, {
     set: (target, key, value) => {
       const oldValue = target[key];
+      // eslint-disable-next-line no-console
       console.log(`${key} set from ${selectedSection.id} to ${value}`);
       target[key] = value;
       const oldOverlayDiv = getContentFrame().contentDocument.querySelector(`.xp-overlay[data-box-id="${oldValue}"]`);
@@ -792,7 +794,9 @@ const attachListeners = () => {
                     if (IS_EXPRESS) {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
-                      transform = TransformFactory.create(buildTransformationConfigFromMapping(mapping));
+                      transform = TransformFactory.create(
+                        buildTransformationConfigFromMapping(mapping),
+                      );
                     }
                     config.importer.setTransformationInput({
                       url: replacedURL,
@@ -1062,7 +1066,7 @@ const attachListeners = () => {
     a.click();
   }));
 
-  OPENURL_BUTTON.addEventListener('click', () => {
+  OPENURL_BUTTON?.addEventListener('click', () => {
     const importURL = config.fields['import-url'];
     if (importURL && importURL.length > 0) {
       window.open(importURL, '_blank');
