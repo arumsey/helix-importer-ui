@@ -267,8 +267,9 @@ section #express-url-inputs > div {
 }
 
 section #express-url-inputs > sp-button {
-  height: 32px;
-  margin-top: 24px;
+  height: 41px;
+  margin-top: 20px;
+  width: 41px;
 }
 
 /* ALERT CONTAINER */
