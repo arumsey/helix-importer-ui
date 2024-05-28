@@ -1,11 +1,12 @@
 
-import xPathToCss from "xpath-to-css";
+import xPathToCss from '../libs/vendors/xpath-to-css/xpath-to-css.js';
 
 const XPATH_BODY = '/html[1]/body[1]';
 
 const baseTransformRules = {
   cleanup: {
     start: [],
+    end: [],
   },
   blocks: [
     {
@@ -18,10 +19,20 @@ const baseTransformRules = {
   ]
 };
 
+/*
 function selectElementFromXpath(xpath, document) {
   return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 }
+*/
 
+/**
+ * Build a CSS selector string from a mapping.
+ * The most useful selector string will be used where a selector based off
+ * of the xpath is used as a last resort.
+ * @param mapping A mapping object
+ * @param basePath xpath of the root element
+ * @return {string} CSS selector string
+ */
 function buildSelector(mapping, basePath) {
   if (mapping.selector) {
     return mapping.selector;
@@ -39,9 +50,9 @@ function buildSelector(mapping, basePath) {
 }
 
 /**
- * Build a transformation config object from a sections mapping
+ * Build a transformation rules object from a section mapping
  */
-function buildTransformationRulesFromMapping(mapping, { document }) {
+function buildTransformationRulesFromMapping(mapping) {
   const transformRules = JSON.parse(JSON.stringify(baseTransformRules));
 
   if (!mapping) {
@@ -51,10 +62,10 @@ function buildTransformationRulesFromMapping(mapping, { document }) {
   // find root element selector
   const rootMapping = mapping.find((m) => m.mapping === 'root');
   const rootXpath = rootMapping?.xpath ? rootMapping.xpath : XPATH_BODY;
-  const rootElement = selectElementFromXpath(rootXpath, document);
+  // const rootElement = selectElementFromXpath(rootXpath, document);
 
   // add root element selector
-  transformRules.root = rootMapping ? buildSelector(rootMapping, XPATH_BODY) : undefined;
+  transformRules.root = rootMapping ? buildSelector(rootMapping, rootXpath) : undefined;
 
   // add clean up sections
   transformRules.cleanup.start = mapping

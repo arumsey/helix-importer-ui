@@ -2,6 +2,13 @@ import parsers from './parsers/index.js';
 
 /* global WebImporter */
 
+const IGNORE_ELEMENTS = [
+  'style',
+  'source',
+  'script',
+  'iframe',
+];
+
 function isValidCSSSelector(selector) {
   try {
     document.querySelector(selector);
@@ -24,8 +31,9 @@ export default class Transformer {
     const { document } = source;
 
     const {
-      root,
+      root = 'main',
       cleanup: {
+        ignore: removeIgnore = IGNORE_ELEMENTS,
         start: removeStart = [],
         end: removeEnd = [],
       },
@@ -33,9 +41,10 @@ export default class Transformer {
     } = rules;
 
     //phase 1: get root element
-    const main = root ? document.querySelector(root) : document.body;
+    const main = document.querySelector(root) || document.body;
 
     // phase 2: DOM removal - start
+    WebImporter.DOMUtils.remove(main, removeIgnore);
     WebImporter.DOMUtils.remove(document, removeStart);
 
     // phase 3: block creation

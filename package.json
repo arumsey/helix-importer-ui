@@ -14,6 +14,10 @@
     "lint": "npm run lint:js && npm run lint:css",
     "semantic-release": "semantic-release"
   },
+  "mocha": {
+    "recursive": "true",
+    "spec": "test/**/*.test.js"
+  },
   "dependencies": {
     "@adobe/helix-importer": "3.4.0",
     "@adobe/mdast-util-gridtables": "4.0.4",
@@ -28,8 +32,7 @@
     "rehype-format": "5.0.0",
     "remark-gfm": "4.0.0",
     "remark-parse": "11.0.0",
-    "unified": "11.0.4",
-    "xpath-to-css": "^1.1.0"
+    "unified": "11.0.4"
   },
   "devDependencies": {
     "@adobe/eslint-config-helix": "2.0.6",

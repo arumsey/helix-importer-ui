@@ -11,13 +11,18 @@
  */
 
 /* eslint-env mocha */
+import path from 'path';
+import { dirname } from 'dirname-filename-esm';
 import assert from 'assert';
 import { readFile } from 'fs/promises';
 import md2html from '../modules/md2html.js';
 
+// eslint-disable-next-line no-underscore-dangle
+const __dirname = dirname(import.meta);
+
 const test = async (spec) => {
-  const md = await readFile(new URL(`./fixtures/${spec}.md`, import.meta.url), 'utf-8');
-  const expected = await readFile(new URL(`./fixtures/${spec}.html`, import.meta.url), 'utf-8');
+  const md = await readFile(path.resolve(__dirname, 'fixtures', `${spec}.md`), 'utf-8');
+  const expected = await readFile(path.resolve(__dirname, 'fixtures', `${spec}.html`), 'utf-8');
   const actual = md2html(md);
   assert.equal(actual.trim(), expected.trim());
 };

@@ -85,6 +85,6 @@ export default function parse(el, { document }) {
     }
   });
 
-  return getNSiblingsDivs(el, document, (n) => n > 1);
+  return [getNSiblingsDivs(el, document, (n) => n > 1)];
 
 }
