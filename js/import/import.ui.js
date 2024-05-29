@@ -17,8 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationRulesFromMapping } from "./rules.import.js";
-import { TransformFactory } from "../shared/transformfactory.js";
+import buildTransformationRulesFromMapping from './rules.import.js';
+import TransformFactory from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -540,7 +540,7 @@ const detectSections = async (src, frame) => {
     [
       [
         { label: 'Root', attributes: { value: 'root' } },
-        { label: 'Exclude', attributes: { value: 'exclude' } }
+        { label: 'Exclude', attributes: { value: 'exclude' } },
       ],
       [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
       [
@@ -594,7 +594,7 @@ const detectSections = async (src, frame) => {
       'sp-button',
       {
         variant: 'primary',
-        ['icon-only']: '',
+        'icon-only': '',
         title: 'Move this item up one row',
         style: `background-color: ${section.color}`,
         class: 'move-up',
@@ -857,7 +857,7 @@ const attachListeners = () => {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
                       transform = TransformFactory.create(
-                          buildTransformationRulesFromMapping(mapping)
+                        buildTransformationRulesFromMapping(mapping),
                       );
                     }
                     config.importer.setTransformationInput({

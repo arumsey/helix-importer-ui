@@ -40,7 +40,7 @@ export default class Transformer {
       blocks = [],
     } = rules;
 
-    //phase 1: get root element
+    // phase 1: get root element
     const main = document.querySelector(root) || document.body;
 
     // phase 2: DOM removal - start
@@ -49,15 +49,17 @@ export default class Transformer {
 
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
-      const { type, variants, selectors, parse, insertMode = 'replace', params = {} } = blockCfg;
-      const parserFn = parse || parsers[type] || parsers['block'];
+      const {
+        type, variants, selectors, parse, insertMode = 'replace', params = {},
+      } = blockCfg;
+      const parserFn = parse || parsers[type] || parsers.block;
       const elements = selectors
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
         : [main];
       // process every element for this block
       elements.forEach((element) => {
         // add params to source
-        source.params = { ...source.params, ...params};
+        source.params = { ...source.params, ...params };
         // parse the element into block items
         let items = parserFn.call(this, element, source);
         if (Array.isArray(items)) {
@@ -67,7 +69,7 @@ export default class Transformer {
         const block = WebImporter.Blocks.createBlock(document, {
           name: WebImporter.Blocks.computeBlockName(type),
           variants,
-          cells: items
+          cells: items,
         });
         if (block) {
           // add block to DOM
@@ -105,14 +107,17 @@ export default class Transformer {
       let selector = value;
       if (Array.isArray(value)) {
         // find first matching element
-        const [, conditionalSelector] = value.find(([condition]) => element.querySelector(condition)) || []
+        const [, conditionalSelector] = value
+          .find(([condition]) => element.querySelector(condition)) || [];
         selector = conditionalSelector;
       }
       let cfgValue = selector;
       if (selector && isValidCSSSelector(selector)) {
-        cfgValue = [...element.querySelectorAll(selector)].map((el) => el.textContent || el.content);
+        cfgValue = [
+          ...element.querySelectorAll(selector)]
+          .map((el) => el.textContent || el.content);
         if (cfgValue.length === 1) {
-          cfgValue = cfgValue[0];
+          [cfgValue] = cfgValue;
         }
       }
       if (cfgValue !== undefined) {
@@ -130,12 +135,10 @@ export default class Transformer {
   static buildBlockCells(element, cells) {
     return cells.map((row) => {
       if (Array.isArray(row)) {
-        return row.map((col) => {
-          return [...element.querySelectorAll(col)];
-        });
+        return row.map((col) => [...element.querySelectorAll(col)]);
       }
       return [...element.querySelectorAll(row)];
     })
-    .filter((row) => row.some((col) => col.length > 0));
+      .filter((row) => row.some((col) => col.length > 0));
   }
 }

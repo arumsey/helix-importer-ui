@@ -9,7 +9,7 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-import { TransformFactory } from './transformfactory.js';
+import TransformFactory from './transformfactory.js';
 
 /* global WebImporter */
 
@@ -93,8 +93,8 @@ export default class PollImporter {
     };
 
     const isJsonResponse = (response) => {
-      const contentType = response.headers.get("content-type");
-      return contentType && contentType.includes("application/json");
+      const contentType = response.headers.get('content-type');
+      return contentType && contentType.includes('application/json');
     };
 
     const projectTransformFileURL = `${this.config.importFileURL}?cf=${new Date().getTime()}`;
