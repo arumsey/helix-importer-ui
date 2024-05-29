@@ -19,12 +19,6 @@ const baseTransformRules = {
   ]
 };
 
-/*
-function selectElementFromXpath(xpath, document) {
-  return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
-*/
-
 /**
  * Build a CSS selector string from a mapping.
  * The most useful selector string will be used where a selector based off
@@ -34,6 +28,8 @@ function selectElementFromXpath(xpath, document) {
  * @return {string} CSS selector string
  */
 function buildSelector(mapping, basePath) {
+  //TODO: this logic may be able to be greatly simplified
+  // when mapping object provides a fully curated selector string
   if (mapping.selector) {
     return mapping.selector;
   }

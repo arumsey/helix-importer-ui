@@ -49,9 +49,9 @@ export default class Transformer {
 
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
-      const { type, selectors = [], parse, insertMode = 'replace', params = {} } = blockCfg;
+      const { type, variants, selectors, parse, insertMode = 'replace', params = {} } = blockCfg;
       const parserFn = parse || parsers[type] || parsers['block'];
-      const elements = selectors.length
+      const elements = selectors
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
         : [main];
       // process every element for this block
@@ -59,19 +59,25 @@ export default class Transformer {
         // add params to source
         source.params = { ...source.params, ...params};
         // parse the element into block items
-        const items = parserFn.call(this, element, source);
+        let items = parserFn.call(this, element, source);
+        if (Array.isArray(items)) {
+          items = items.filter((item) => item);
+        }
         // create the block
         const block = WebImporter.Blocks.createBlock(document, {
           name: WebImporter.Blocks.computeBlockName(type),
+          variants,
           cells: items
         });
-        // add block to DOM
-        if (insertMode === 'append') {
-          main.append(block);
-        } else if (insertMode === 'prepend') {
-          main.prepend(block);
-        } else {
-          element.replaceWith(block);
+        if (block) {
+          // add block to DOM
+          if (insertMode === 'append') {
+            main.append(block);
+          } else if (insertMode === 'prepend') {
+            main.prepend(block);
+          } else {
+            element.replaceWith(block);
+          }
         }
       });
     });
@@ -129,7 +135,7 @@ export default class Transformer {
         });
       }
       return [...element.querySelectorAll(row)];
-    });
+    })
+    .filter((row) => row.some((col) => col.length > 0));
   }
-
 }

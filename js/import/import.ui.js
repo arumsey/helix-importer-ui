@@ -586,8 +586,6 @@ const detectSections = async (src, frame) => {
     row.dataset.sectionId = section.id;
     row.dataset.xpath = section.xpath;
     row.classList.add('row');
-    const numCols = section?.layout?.numCols ? section.layout.numCols : 0;
-    const numRows = section?.layout?.numRows ? section.layout.numRows : 0;
     const domId = !section.domId || section.domId === 'null' ? '' : `#${section.domId}`;
     const classes = section.domClasses ? `.${section.domClasses}` : '';
 
@@ -629,7 +627,6 @@ const detectSections = async (src, frame) => {
     );
     const selectorDiv = createElement('div', { title: `${section.xpath}\n${domSelector.innerText}` });
     selectorDiv.appendChild(domSelector);
-    // const layout = createElement('h3', { id: 'sec-layout' }, `${numCols} x ${numRows}`);
 
     const mappingPicker = getBlockPicker(section.mapping);
 
