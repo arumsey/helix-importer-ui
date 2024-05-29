@@ -17,8 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationRulesFromMapping } from "./rules.import.js";
-import { TransformFactory } from "../shared/transformfactory.js";
+import { buildTransformationRulesFromMapping } from './rules.import.js';
+import { TransformFactory } from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -283,7 +283,7 @@ const postSuccessfulStep = async (results, originalURL) => {
       if (config.fields['import-local-docx'] && docx) {
         files.push({ type: 'docx', filename, data: docx });
       } else if (config.fields['import-local-html'] && html) {
-        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head></head>${html}</html>` });
+        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head title="Post Config Update"></head>${html}</html>` });
       } else if (config.fields['import-local-md'] && md) {
         files.push({ type: 'md', filename: `${path}.md`, data: md });
       }
@@ -492,12 +492,9 @@ const detectSections = async (src, frame) => {
       mItem.mapping = newMapping ?? mItem.mapping;
       mItem.selector = newSelector ?? mItem.selector;
     } else if (selectedSection.id !== null) {
-      const domSelector = selectedSection.domId
-        ?? selectedSection.domClasses
-        ?? selectedSection.xpath;
       mappingData.push({
         id: selectedSection.id,
-        selector: newSelector ?? domSelector,
+        selector: newSelector ?? selectedSection.selector,
         mapping: newMapping ?? selectedSection.mapping,
       });
     } else {
@@ -508,7 +505,7 @@ const detectSections = async (src, frame) => {
     saveImporterSectionsMapping(originalURL, mappingData);
   }
 
-  function getTextField(id, placeHolder, value, changeType, visible) {
+  function getTextField(id, placeHolder, value, changeType, visible, helpText) {
     const textField = document.createElement('sp-textfield');
     textField.setAttribute('id', id);
     textField.setAttribute('placeHolder', placeHolder);
@@ -527,6 +524,11 @@ const detectSections = async (src, frame) => {
     if (value) {
       textField.setAttribute('value', value);
     }
+    if (helpText) {
+      textField.appendChild(
+        createElement('sp-help-text', { slot: 'help-text' }, helpText),
+      );
+    }
 
     return textField;
   }
@@ -540,7 +542,7 @@ const detectSections = async (src, frame) => {
     [
       [
         { label: 'Root', attributes: { value: 'root' } },
-        { label: 'Exclude', attributes: { value: 'exclude' } }
+        { label: 'Exclude', attributes: { value: 'exclude' } },
       ],
       [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
       [
@@ -582,14 +584,11 @@ const detectSections = async (src, frame) => {
 
   function getMappingRow(section, idx = 1) {
     const row = document.createElement('div');
-    row.dataset.idx = idx;
+    row.dataset.idx = `${idx}`;
     row.dataset.sectionId = section.id;
     row.dataset.xpath = section.xpath;
     row.classList.add('row');
-    const numCols = section?.layout?.numCols ? section.layout.numCols : 0;
-    const numRows = section?.layout?.numRows ? section.layout.numRows : 0;
-    const domId = !section.domId || section.domId === 'null' ? '' : `#${section.domId}`;
-    const classes = section.domClasses ? `.${section.domClasses}` : '';
+    const selector = !section.selector ? '' : section.selector;
 
     const color = createElement('div', { id: 'sec-color', class: 'sec-color', style: `background-color: ${section.color || 'white'}` });
     const moveUpBtn = createElement(
@@ -620,16 +619,24 @@ const detectSections = async (src, frame) => {
       }
     });
 
+    let helpText;
+    if (selector) {
+      const allSelectors = frame.contentDocument.querySelectorAll(selector);
+      if (allSelectors.length !== 1) {
+        helpText = `This selector produces ${allSelectors.length} results.`;
+      }
+    }
     const domSelector = getTextField(
       'sec-dom-selector',
-      'selector',
-      (domId + classes).length > 0 ? `${domId}${classes}` : section.xpath,
+      'Selector',
+      selector,
       'newSelector',
       true,
+      helpText,
     );
-    const selectorDiv = createElement('div', { title: `${section.xpath}\n${domSelector.innerText}` });
+    const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
+    const selectorDiv = createElement('div', { title: `${title}` });
     selectorDiv.appendChild(domSelector);
-    // const layout = createElement('h3', { id: 'sec-layout' }, `${numCols} x ${numRows}`);
 
     const mappingPicker = getBlockPicker(section.mapping);
 
@@ -638,8 +645,6 @@ const detectSections = async (src, frame) => {
     deleteBtn.setAttribute('icon-only', '');
     deleteBtn.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
     deleteBtn.addEventListener('click', (e) => {
-      // console.log(e);
-      // console.log('delete section', section.id);
       // row
       const rowEl = e.target.closest('.row');
       if (rowEl) {
@@ -664,6 +669,13 @@ const detectSections = async (src, frame) => {
           div.scrollIntoViewIfNeeded({ behavior: 'smooth' });
         }
         selectedSectionProxy.id = id;
+
+        // Highlight the box by emphasising the border for a second.
+        // const originalStyle = div.style;
+        // div.style = `${originalStyle};border: 50px green solid !important;`;
+        // setTimeout(() => {
+        //   div.style = originalStyle;
+        // }, 1000);
       }
     });
 
@@ -695,8 +707,7 @@ const detectSections = async (src, frame) => {
       if (!mappingData.find((m) => m.id === section.id)) {
         mappingData.push({
           id: section.id,
-          domId: section.domId,
-          domClasses: section.domClasses,
+          selector: section.selector,
           xpath: section.xpath,
           layout: section.layout,
           color: section.color,
@@ -711,6 +722,21 @@ const detectSections = async (src, frame) => {
 
 const attachListeners = () => {
   attachOptionFieldsListeners(config.fields, PARENT_SELECTOR);
+
+  function pageLoadFailed(src, url, res) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+    );
+    alert.error(
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+    );
+    importStatus.rows.push({
+      url,
+      status: `Invalid: ${res?.status || 'unknown status'}`,
+    });
+    updateImporterUI([{ status: 'error' }], url);
+  }
 
   config.importer.addListener(async ({ results }) => {
     const frame = getContentFrame();
@@ -914,14 +940,7 @@ const attachListeners = () => {
             SPTABS.selected = 'import-preview';
           }
         } else {
-          // eslint-disable-next-line no-console
-          console.warn(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
-          alert.error(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
-          importStatus.rows.push({
-            url,
-            status: `Invalid: ${res?.status || 'unknown status'}`,
-          });
-          updateImporterUI([{ status: 'error' }], url);
+          pageLoadFailed(src, url, res);
           processNext();
         }
       } else {
@@ -931,6 +950,12 @@ const attachListeners = () => {
         DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
         enableProcessButtons();
         toggleLoadingButton(IMPORT_BUTTON);
+        if (IS_EXPRESS) {
+          // After the import, detect sections again (show boxes, mapping, etc.)
+          setTimeout(() => {
+            DETECT_BUTTON?.click();
+          }, 100);
+        }
       }
     };
     processNext();
@@ -1014,6 +1039,9 @@ const attachListeners = () => {
                     background-color: rgba(0, 0, 125, 0.1) !important;
                     cursor: pointer;
                   }
+                  .xp-overlay .xp-overlay-selector.show {
+                    display: none !important;
+                  }
                 `;
                 frame.contentDocument.head.appendChild(style);
 
@@ -1079,14 +1107,7 @@ const attachListeners = () => {
             }
           }
         } else {
-          // eslint-disable-next-line no-console
-          console.warn(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
-          alert.error(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
-          importStatus.rows.push({
-            url,
-            status: `Invalid: ${res?.status || 'unknown status'}`,
-          });
-          updateImporterUI([{ status: 'error' }], url);
+          pageLoadFailed(src, url, res);
           processNext();
         }
       } else {
