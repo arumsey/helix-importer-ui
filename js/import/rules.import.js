@@ -1,4 +1,14 @@
-
+/*
+ * Copyright 2024 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
 import xPathToCss from '../libs/vendors/xpath-to-css/xpath-to-css.js';
 
 const XPATH_BODY = '/html[1]/body[1]';
@@ -13,17 +23,11 @@ const baseTransformRules = {
       type: 'metadata',
       insertMode: 'append',
       params: {
-        metadata: {}
+        metadata: {},
       },
     },
-  ]
+  ],
 };
-
-/*
-function selectElementFromXpath(xpath, document) {
-  return document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
-*/
 
 /**
  * Build a CSS selector string from a mapping.
@@ -34,6 +38,8 @@ function selectElementFromXpath(xpath, document) {
  * @return {string} CSS selector string
  */
 function buildSelector(mapping, basePath) {
+  // TODO: this logic may be able to be greatly simplified
+  // when mapping object provides a fully curated selector string
   if (mapping.selector) {
     return mapping.selector;
   }
@@ -84,17 +90,17 @@ function buildTransformationRulesFromMapping(mapping) {
       return blockMap;
     }, {});
 
-  transformRules.blocks = [...transformRules.blocks, ...Object.entries(blockMapping).map(([type, mappingList]) => {
-    const selectors = mappingList.map((m) => buildSelector(m, XPATH_BODY));
-    return {
-      type,
-      selectors,
-    };
-  })];
+  transformRules.blocks = [
+    ...transformRules.blocks,
+    ...Object.entries(blockMapping).map(([type, mappingList]) => {
+      const selectors = mappingList.map((m) => buildSelector(m, XPATH_BODY));
+      return {
+        type,
+        selectors,
+      };
+    })];
 
   return transformRules;
 }
 
-export {
-  buildTransformationRulesFromMapping,
-}
+export default buildTransformationRulesFromMapping;

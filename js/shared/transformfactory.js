@@ -25,17 +25,17 @@ const generateDocumentPath = ({ url }) => {
     p = `${p}index`;
   }
   p = decodeURIComponent(p)
-  .toLowerCase()
-  .replace(/\.html$/, '')
-  .replace(/[^a-z0-9/]/gm, '-');
+    .toLowerCase()
+    .replace(/\.html$/, '')
+    .replace(/[^a-z0-9/]/gm, '-');
   return WebImporter.FileUtils.sanitizePath(p);
 };
 
 /**
  * Factory to create a transformation object using a given set of rules.
  */
-export const TransformFactory = {
-  /***
+const TransformFactory = {
+  /** *
    * Creates a new transformation object.
    *
    * @param rules JSON object with the transformation rules.
@@ -52,3 +52,5 @@ export const TransformFactory = {
     },
   }),
 };
+
+export default TransformFactory;

@@ -2,7 +2,7 @@
 
 function isDate(str) {
   const date = new Date(str);
-  return !isNaN(date);
+  return !Number.isNaN(date);
 }
 
 export default function parse(element, { document, params: { metadata = {} } }) {

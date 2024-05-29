@@ -14,10 +14,10 @@
 import path from 'path';
 import { dirname } from 'dirname-filename-esm';
 import { JSDOM } from 'jsdom';
-import 'jsdom-global/register.js'
+import 'jsdom-global/register.js';
 import assert from 'assert';
 import { readFile } from 'fs/promises';
-import { buildTransformationRulesFromMapping } from '../../js/import/rules.import.js';
+import buildTransformationRulesFromMapping from '../../js/import/rules.import.js';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = dirname(import.meta);
@@ -31,10 +31,10 @@ const baseRules = {
       type: 'metadata',
       insertMode: 'append',
       params: {
-        metadata: {}
+        metadata: {},
       },
     },
-  ]
+  ],
 };
 
 const test = async (mapping, rules) => {
@@ -57,7 +57,7 @@ describe('buildTransformationRulesFromMapping tests', () => {
       {
         domId: 'maincontent',
         mapping: 'root',
-      }
+      },
     ];
     const rules = { ...baseRules, root: '#maincontent' };
     await test(mapping, rules);
@@ -67,7 +67,7 @@ describe('buildTransformationRulesFromMapping tests', () => {
       {
         domClasses: 'page-main',
         mapping: 'root',
-      }
+      },
     ];
     const rules = { ...baseRules, root: '.page-main' };
     await test(mapping, rules);
@@ -77,7 +77,7 @@ describe('buildTransformationRulesFromMapping tests', () => {
       {
         xpath: '/html[1]/body[1]/div[2]/main[1]',
         mapping: 'root',
-      }
+      },
     ];
     const rules = { ...baseRules, root: 'div:nth-of-type(2) > main:first-of-type' };
     await test(mapping, rules);
