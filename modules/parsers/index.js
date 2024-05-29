@@ -6,6 +6,6 @@ const parsers = {
   metadata: parseMetadata,
   columns: parseColumns,
   block: defaultParser,
-}
+};
 
 export default parsers;

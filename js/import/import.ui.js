@@ -17,8 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationConfigFromMapping } from './utils.import.js';
-import { TransformFactory } from '../shared/transformfactory.js';
+import buildTransformationRulesFromMapping from './rules.import.js';
+import TransformFactory from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -49,7 +49,7 @@ const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker
 // manual mapping elements
 const IS_EXPRESS = document.querySelector('.import-express') !== null;
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
-const SAVE_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
+const DOWNLOAD_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 const OPENURL_BUTTON = document.getElementById('express-open-url-button');
 
@@ -130,7 +130,7 @@ const loadResult = ({ md, html: outputHTML }, originalURL) => {
 
   if (ui.jsonEditor) {
     const mapping = getImporterSectionsMapping(originalURL) || [];
-    const transform = buildTransformationConfigFromMapping(mapping);
+    const transform = buildTransformationRulesFromMapping(mapping);
     ui.jsonEditor.setValue(JSON.stringify(transform, null, 2));
   }
 };
@@ -518,9 +518,9 @@ const detectSections = async (src, frame) => {
     }
     textField.addEventListener('change', (e) => {
       if (e.target.value && e.target.value.length > 0) {
-        const mappingName = e.target.parentElement.querySelector('#block-picker');
+        // const mappingName = e.target.parentElement.querySelector('#block-picker');
         const args = {};
-        args[changeType] = `${mappingName.value}:${e.target.value}`;
+        args[changeType] = e.target.value;
         saveMappingChange(args);
       }
     });
@@ -538,7 +538,10 @@ const detectSections = async (src, frame) => {
     blockPicker.setAttribute('id', 'block-picker');
 
     [
-      [{ label: 'Exclude', attributes: { value: 'exclude' } }],
+      [
+        { label: 'Root', attributes: { value: 'root' } },
+        { label: 'Exclude', attributes: { value: 'exclude' } },
+      ],
       [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
       [
         { label: 'Hero', attributes: { value: 'hero' } },
@@ -583,8 +586,6 @@ const detectSections = async (src, frame) => {
     row.dataset.sectionId = section.id;
     row.dataset.xpath = section.xpath;
     row.classList.add('row');
-    const numCols = section?.layout?.numCols ? section.layout.numCols : 0;
-    const numRows = section?.layout?.numRows ? section.layout.numRows : 0;
     const domId = !section.domId || section.domId === 'null' ? '' : `#${section.domId}`;
     const classes = section.domClasses ? `.${section.domClasses}` : '';
 
@@ -592,13 +593,14 @@ const detectSections = async (src, frame) => {
     const moveUpBtn = createElement(
       'sp-button',
       {
-        variant: 'accent',
+        variant: 'primary',
+        'icon-only': '',
         title: 'Move this item up one row',
         style: `background-color: ${section.color}`,
         class: 'move-up',
       },
     );
-    moveUpBtn.innerHTML = '<sp-icon-arrow-up>^</sp-icon-arrow-up>';
+    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>';
     moveUpBtn.addEventListener('click', (e) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
@@ -618,20 +620,20 @@ const detectSections = async (src, frame) => {
 
     const domSelector = getTextField(
       'sec-dom-selector',
-      'XPath or Id + classes',
+      'selector',
       (domId + classes).length > 0 ? `${domId}${classes}` : section.xpath,
       'newSelector',
       true,
     );
     const selectorDiv = createElement('div', { title: `${section.xpath}\n${domSelector.innerText}` });
     selectorDiv.appendChild(domSelector);
-    const layout = createElement('h3', { id: 'sec-layout' }, `${numCols} x ${numRows}`);
 
     const mappingPicker = getBlockPicker(section.mapping);
 
     const deleteBtn = document.createElement('sp-button');
     deleteBtn.setAttribute('variant', 'negative');
-    deleteBtn.innerHTML = '<sp-icon-delete></sp-icon-delete>';
+    deleteBtn.setAttribute('icon-only', '');
+    deleteBtn.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
     deleteBtn.addEventListener('click', (e) => {
       // console.log(e);
       // console.log('delete section', section.id);
@@ -648,7 +650,7 @@ const detectSections = async (src, frame) => {
       }
     });
 
-    row.append(color, moveUpBtn, selectorDiv, layout, mappingPicker, deleteBtn);
+    row.append(color, moveUpBtn, selectorDiv, mappingPicker, deleteBtn);
 
     row.addEventListener('mouseenter', (e) => {
       const target = e.target.nodeName === 'DIV' ? e.target : e.target.closest('.row');
@@ -752,7 +754,7 @@ const attachListeners = () => {
       DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
     } else {
       DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
-      SAVE_TRANSFORMATION_BUTTON.classList.add('hidden');
+      DOWNLOAD_TRANSFORMATION_BUTTON?.classList.add('hidden');
     }
 
     disableProcessButtons();
@@ -855,7 +857,7 @@ const attachListeners = () => {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
                       transform = TransformFactory.create(
-                        buildTransformationConfigFromMapping(mapping),
+                        buildTransformationRulesFromMapping(mapping),
                       );
                     }
                     config.importer.setTransformationInput({
@@ -923,6 +925,7 @@ const attachListeners = () => {
         const frame = getContentFrame();
         frame.removeEventListener('transformation-complete', processNext);
         DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
+        DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
         enableProcessButtons();
         toggleLoadingButton(IMPORT_BUTTON);
       }
@@ -933,6 +936,7 @@ const attachListeners = () => {
   DETECT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
     DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
+    DOWNLOAD_TRANSFORMATION_BUTTON?.classList.add('hidden');
     PREVIEW_CONTAINER?.classList.remove('hidden');
     MAPPING_EDITOR_SECTIONS.innerHTML = '';
 
@@ -1093,7 +1097,7 @@ const attachListeners = () => {
     processNext();
   }));
 
-  SAVE_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
+  DOWNLOAD_TRANSFORMATION_BUTTON?.addEventListener('click', async () => {
     const originalURL = config.fields['import-url'];
 
     const importDirHandle = await getDirectoryHandle();
@@ -1107,7 +1111,7 @@ const attachListeners = () => {
     await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(mapping, null, 2));
 
     // save import json
-    const transformCfg = buildTransformationConfigFromMapping(mapping);
+    const transformCfg = buildTransformationRulesFromMapping(mapping);
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
   });
 

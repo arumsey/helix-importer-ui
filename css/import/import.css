@@ -224,10 +224,10 @@
     }
 
     & #sec-color {
-      min-width: 72px;
-      height: 1rem;
+      width: 32px;
+      height: 32px;
       border: none;
-      border-radius: 8px;
+      border-radius: 32px;
     }
 
     & #sec-layout {

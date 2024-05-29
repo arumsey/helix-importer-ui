@@ -1,0 +1,9 @@
+[
+  {
+    "domId": "maincontent",
+    "domClasses": "page-main",
+    "xpath": "/html[1]/body[1]/div[2]/main[1]",
+    "selector": "main",
+    "mapping": "root"
+  }
+]

@@ -14,6 +14,10 @@
     "lint": "npm run lint:js && npm run lint:css",
     "semantic-release": "semantic-release"
   },
+  "mocha": {
+    "recursive": "true",
+    "spec": "test/**/*.test.js"
+  },
   "dependencies": {
     "@adobe/helix-importer": "3.4.0",
     "@adobe/mdast-util-gridtables": "4.0.4",
@@ -40,11 +44,14 @@
     "c8": "9.1.0",
     "clean-webpack-plugin": "4.0.0",
     "copy-webpack-plugin": "12.0.2",
+    "dirname-filename-esm": "^1.1.1",
     "eslint": "8.57.0",
     "eslint-import-resolver-exports": "1.0.0-beta.5",
     "eslint-plugin-header": "3.1.1",
     "eslint-plugin-import": "2.29.1",
     "html-webpack-plugin": "5.6.0",
+    "jsdom": "24.0.0",
+    "jsdom-global": "^3.0.2",
     "mini-css-extract-plugin": "2.9.0",
     "mocha": "10.4.0",
     "node-polyfill-webpack-plugin": "3.0.0",

@@ -1,0 +1,15 @@
+{
+  "cleanup": {
+    "start": []
+  },
+  "blocks": [
+    {
+      "type": "metadata",
+      "insertMode": "append",
+      "params": {
+        "metadata": {}
+      }
+    }
+  ],
+  "root": "#maincontent"
+}

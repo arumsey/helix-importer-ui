@@ -1,0 +1,19 @@
+{
+  "cleanup": {
+    "start": [
+      "#page-header",
+      ".page-footer",
+      ".sidebar.sidebar-main",
+      "main .breadcrumbs"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "metadata",
+      "insertMode": "append",
+      "params": {
+        "metadata": {}
+      }
+    }
+  ]
+}
