@@ -195,12 +195,7 @@
 }
 
 /* sections mapping */
-.import #mapping-editor {
-  & h3 {
-    font-family: monospace;
-    margin: 0;
-  }
-
+.import-express #mapping-editor {
   /* Show 'up' button, or color swatch. */
   & .row:first-child .move-up {
     display: none;
@@ -212,7 +207,7 @@
   }
 
   & .row {
-    padding: 1rem;
+    padding: 0.5rem;
     display: flex;
     flex-direction: row;
     gap: 2rem;

@@ -1153,4 +1153,17 @@ governing permissions and limitations under the License.
     <path
       d="M33.5 2H22.754a.8.8 0 0 0-.754.8.784.784 0 0 0 .235.56l3.786 3.79-7.042 7.042a1 1 0 0 0 0 1.415l1.414 1.414a1 1 0 0 0 1.414 0l7.043-7.042 3.786 3.785A.781.781 0 0 0 33.2 14a.8.8 0 0 0 .8-.754V2.5a.5.5 0 0 0-.5-.5Z"
     />
+  </svg>`)({hidden:!this.label,title:this.label})}}),(0,x.e)("sp-icon-add-circle",class extends v{render(){return y(t.qy),(({width:t=24,height:e=24,hidden:r=!1,title:o="Add Circle"}={})=>k`<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width=${t}
+    height=${e}
+    viewBox="0 0 36 36"
+    aria-hidden=${r?"true":"false"}
+    role="img"
+    fill="currentColor"
+    aria-label=${o}
+  >
+    <path
+      d="M18 2a16 16 0 1 0 16 16A16 16 0 0 0 18 2Zm10 17a1 1 0 0 1-1 1h-7v7a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-7H9a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h7V9a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h7a1 1 0 0 1 1 1Z"
+    />
   </svg>`)({hidden:!this.label,title:this.label})}})})()})();

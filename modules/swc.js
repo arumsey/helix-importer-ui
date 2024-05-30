@@ -44,3 +44,4 @@ import '@spectrum-web-components/menu/sp-menu-divider.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-delete.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-arrow-up.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-link-out.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-add-circle.js';
