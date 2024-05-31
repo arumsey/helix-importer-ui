@@ -17,7 +17,7 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import buildTransformationRulesFromMapping from './rules.import.js';
+import { buildTransformationRulesFromMapping } from './rules.import.js';
 import TransformFactory from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
@@ -737,10 +737,10 @@ const attachListeners = () => {
   function pageLoadFailed(src, url, res) {
     // eslint-disable-next-line no-console
     console.warn(
-      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`,
     );
     alert.error(
-      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`,
     );
     importStatus.rows.push({
       url,
@@ -902,7 +902,7 @@ const attachListeners = () => {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
                       transform = TransformFactory.create(
-                          buildTransformationRulesFromMapping(mapping)
+                        buildTransformationRulesFromMapping(mapping),
                       );
                     }
                     config.importer.setTransformationInput({

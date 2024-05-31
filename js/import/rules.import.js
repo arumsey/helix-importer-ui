@@ -12,6 +12,7 @@
 import xPathToCss from '../libs/vendors/xpath-to-css/xpath-to-css.js';
 
 const XPATH_BODY = '/html[1]/body[1]';
+const MAPPING_CONFIG_KEYS = ['name', 'value'];
 
 const baseTransformRules = {
   cleanup: {
@@ -23,7 +24,7 @@ const baseTransformRules = {
       type: 'metadata',
       insertMode: 'append',
       params: {
-        metadata: {},
+        cells: {},
       },
     },
   ],
@@ -53,6 +54,35 @@ function buildSelector(mapping, basePath) {
     return xPathToCss(mapping.xpath.replace(basePath, ''));
   }
   return '';
+}
+
+/**
+ * Build a block cells object from a list of mappings.
+ * @param mappingList
+ */
+function buildBlockCellsFromMapping(mappingList = []) {
+  return mappingList.reduce((cells, mapping) => {
+    // does this mapping contain a block customization?
+    if (!MAPPING_CONFIG_KEYS.every((key) => key in mapping)) {
+      return cells;
+    }
+    const { name, value, condition } = mapping;
+    const cellValue = cells[name];
+    if (cellValue !== undefined) {
+      // add a new entry to existing cell item array
+      if (Array.isArray(cellValue) && condition) {
+        cellValue.push([condition, value]);
+      }
+      if (typeof cellValue === 'string') {
+        console.warn(`Conditional cell value [${condition}] cannot be added to an existing cell that has an absolute value`);
+      }
+    } else if (condition) {
+      cells[name] = [[condition, value]];
+    } else {
+      cells[name] = value;
+    }
+    return cells;
+  }, {});
 }
 
 /**
@@ -93,14 +123,21 @@ function buildTransformationRulesFromMapping(mapping) {
   transformRules.blocks = [
     ...transformRules.blocks,
     ...Object.entries(blockMapping).map(([type, mappingList]) => {
+      const existingRules = transformRules.blocks.find((b) => b.type === type);
       const selectors = mappingList.map((m) => buildSelector(m, XPATH_BODY));
+      const cells = buildBlockCellsFromMapping(mappingList);
       return {
+        ...existingRules,
         type,
         selectors,
+        cells,
       };
     })];
 
   return transformRules;
 }
 
-export default buildTransformationRulesFromMapping;
+export {
+  buildBlockCellsFromMapping,
+  buildTransformationRulesFromMapping,
+};

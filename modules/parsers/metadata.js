@@ -1,3 +1,5 @@
+import blockParser from './block.js';
+
 /* global WebImporter */
 
 function isDate(str) {
@@ -5,9 +7,9 @@ function isDate(str) {
   return !Number.isNaN(date);
 }
 
-export default function parse(element, { document, params: { metadata = {} } }) {
+export default function parse(element, { document, params: { cells = {} } }) {
   const baseMetadata = WebImporter.Blocks.getMetadata(document) || {};
-  const customMetadata = WebImporter.Transformer.buildBlockConfig(document, metadata);
+  const customMetadata = blockParser(document, { params: { cells } });
   // convert dates
   Object.entries(customMetadata).forEach(([key, value]) => {
     if (isDate(value)) {
