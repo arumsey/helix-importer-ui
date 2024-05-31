@@ -10,6 +10,7 @@
  * governing permissions and limitations under the License.
  */
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
+import { initializeMetadata } from './util/metadata.js';
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
 import { asyncForEach, getElementByXpath, createElement } from '../shared/utils.js';
@@ -50,6 +51,7 @@ const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker
 const IS_EXPRESS = document.querySelector('.import-express') !== null;
 const DETECT_BUTTON = document.getElementById('detect-sections-button');
 const DOWNLOAD_TRANSFORMATION_BUTTON = document.getElementById('import-downloadTransformation');
+const MAPPING_EDITOR = document.getElementById('mapping-editor');
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 const OPENURL_BUTTON = document.getElementById('express-open-url-button');
 
@@ -427,7 +429,7 @@ const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`
 const sleep = (ms) => new Promise(
   (resolve) => {
     setTimeout(resolve, ms);
-  },
+  }
 );
 
 const smartScroll = async (window, reset = false) => {
@@ -450,12 +452,19 @@ const detectSections = async (src, frame) => {
   const { originalURL } = frame.dataset;
   const sections = await window.xp.detectSections(
     frame.contentDocument.body,
-    frame.contentWindow.window,
+    frame.contentWindow.window
   );
   const selectedSection = { id: null };
 
   // eslint-disable-next-line no-console
   console.log('sections', sections);
+
+  // Initialize mappings basic UI after detection
+  const allHidden = MAPPING_EDITOR?.querySelectorAll('[class~="hidden"]');
+  allHidden.forEach((he) => {
+    he.classList.remove('hidden');
+  });
+  MAPPING_EDITOR?.querySelector('#mapping-click-detection-prompt').classList.add('hidden');
 
   const selectedSectionProxy = new Proxy(selectedSection, {
     set: (target, key, value) => {
@@ -484,6 +493,29 @@ const detectSections = async (src, frame) => {
     //   mapping: <mapping>,
     // },
   ];
+
+  // Delete a row from the UI and remove its contents from the saved mappings.
+  const getRowDeleteButton = () => {
+    const deleteBtn = document.createElement('sp-button');
+    deleteBtn.setAttribute('variant', 'negative');
+    deleteBtn.setAttribute('icon-only', '');
+    deleteBtn.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
+    deleteBtn.addEventListener('click', (e) => {
+      const rowEl = e.target.closest('.row');
+      if (rowEl) {
+        const id = rowEl.dataset.sectionId ?? rowEl.dataset.metadataId;
+        // eslint-disable-next-line no-param-reassign
+        mappingData = mappingData.filter((m) => m.id !== id);
+
+        // save sections mapping data
+        saveImporterSectionsMapping(originalURL, mappingData);
+
+        rowEl.remove();
+      }
+    });
+
+    return deleteBtn;
+  };
 
   function saveMappingChange({ newMapping, newSelector }) {
     // update mapping data
@@ -536,14 +568,14 @@ const detectSections = async (src, frame) => {
     }
     if (helpText) {
       textField.appendChild(
-        createElement('sp-help-text', { slot: 'help-text' }, helpText),
+        createElement('sp-help-text', { slot: 'help-text' }, helpText)
       );
     }
 
     return textField;
   }
 
-  function getBlockPicker(value = 'unset', forceSave = false) {
+  function getBlockPicker(value = 'unset') {
     const blockPickerDiv = document.createElement('div');
     const blockPicker = document.createElement('sp-picker');
     blockPicker.setAttribute('label', 'Mapping ...');
@@ -583,10 +615,6 @@ const detectSections = async (src, frame) => {
       saveMappingChange({ newMapping: e.target.value });
     });
 
-    if (forceSave) {
-      saveMappingChange({ newMapping: value });
-    }
-
     blockPickerDiv.appendChild(blockPicker);
 
     return blockPickerDiv;
@@ -609,9 +637,10 @@ const detectSections = async (src, frame) => {
         title: 'Move this item up one row',
         style: `background-color: ${section.color}`,
         class: 'move-up',
-      },
+      }
     );
-    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>';
+    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>'
+      + '<sp-tooltip self-managed>Move this mapping up one row</sp-tooltip>';
     moveUpBtn.addEventListener('click', (e) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
@@ -642,31 +671,15 @@ const detectSections = async (src, frame) => {
       selector,
       'newSelector',
       true,
-      helpText,
+      helpText
     );
     const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
     const selectorDiv = createElement('div', { title: `${title}` });
     selectorDiv.appendChild(domSelector);
+    selectorDiv.appendChild(createElement('sp-tooltip', { 'self-managed': true }, title));
 
     const mappingPicker = getBlockPicker(section.mapping);
-
-    const deleteBtn = document.createElement('sp-button');
-    deleteBtn.setAttribute('variant', 'negative');
-    deleteBtn.setAttribute('icon-only', '');
-    deleteBtn.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
-    deleteBtn.addEventListener('click', (e) => {
-      // row
-      const rowEl = e.target.closest('.row');
-      if (rowEl) {
-        const id = rowEl.dataset.sectionId;
-        mappingData = mappingData.filter((m) => m.id !== id);
-
-        // save sections mapping data
-        saveImporterSectionsMapping(originalURL, mappingData);
-
-        rowEl.remove();
-      }
-    });
+    const deleteBtn = getRowDeleteButton(mappingData, originalURL);
 
     row.append(color, moveUpBtn, selectorDiv, mappingPicker, deleteBtn);
 
@@ -693,20 +706,25 @@ const detectSections = async (src, frame) => {
     return row;
   }
 
-  // look for existing mapping data
-  try {
-    const mapping = getImporterSectionsMapping(originalURL);
-    if (mapping) {
-      mappingData = mapping;
-      mapping.forEach((m) => {
-        const row = getMappingRow(m, MAPPING_EDITOR_SECTIONS.children.length);
-        MAPPING_EDITOR_SECTIONS.appendChild(row);
-      });
+  // Initialize mappingData, if need be.
+  if (!mappingData || mappingData.length === 0) {
+    try {
+      const mapping = getImporterSectionsMapping(originalURL);
+      if (mapping) {
+        mappingData = mapping;
+      }
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(`Error loading sections mapping data for url ${originalURL}`, e);
+      return;
     }
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error(`Error loading sections mapping data for url ${originalURL}`, e);
   }
+
+  // Set up the non-metadata (customized) blocks.
+  mappingData.filter((md) => md.mapping !== 'metadata').forEach((m) => {
+    const row = getMappingRow(m, MAPPING_EDITOR_SECTIONS.children.length);
+    MAPPING_EDITOR_SECTIONS.appendChild(row);
+  });
 
   frame.contentDocument.body.addEventListener('click', (e) => {
     const overlayDiv = e.target; // .closest('.xp-overlay');
@@ -729,6 +747,8 @@ const detectSections = async (src, frame) => {
       }
     }
   });
+
+  initializeMetadata(mappingData, originalURL, getRowDeleteButton);
 };
 
 const attachListeners = () => {
@@ -1052,7 +1072,7 @@ const attachListeners = () => {
                   }
                   .xp-overlay.hover {
                     box-shadow: inset 0 0 75px rgba(0, 0, 125, 1);
-                    background-color: rgba(0, 0, 125, 0.1) !important;
+                    background-color: rgba(0, 0, 125, 0.3) !important;
                     cursor: pointer;
                   }
                   .xp-overlay .xp-overlay-selector.show {

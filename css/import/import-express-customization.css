@@ -1,0 +1,26 @@
+@import url("../libs/vendors/codemirror/base16-dark.css");
+
+.import-express #metadata-editor {
+
+  & h1 {
+    margin: 1rem 1rem 1rem 0;
+  }
+
+  & .row {
+    padding: 0.5rem;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  & h2:not(#metadata-click-detection-prompt),
+  & sp-textfield {
+    width: 30%;
+    min-width: 240px;
+  }
+
+  & #metadata-editor-add {
+    margin-top: 1rem;
+    align-self: end;
+  }
+}
