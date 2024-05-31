@@ -17,25 +17,20 @@ let getMetadataRowDeleteButton;
  * @param originalURL
  */
 const updateMetadataMapping = (event, mappingData, originalURL) => {
-  if (event.target.value || event.target.value === '') {
+  if (event.target.value !== undefined) {
     const metadataFields = ['name', 'value', 'condition'];
     const row = event.target.parentElement;
     const id = row.dataset.metadataId;
-    const mItem = mappingData.find((m) => m.id === id);
-    const newValues = { id, mapping: 'metadata' };
+    const mItem = mappingData.find((m) => m.id === id) ?? {};
     metadataFields.forEach((attr) => {
-      const fieldValue = row.querySelector(`.metadata-row-${attr}`).value;
-      if (mItem) {
-        mItem[attr] = fieldValue;
-      } else {
-        newValues[attr] = fieldValue;
-      }
+      mItem[attr] = row.querySelector(`.metadata-row-${attr}`).value;
     });
+
     // Check for duplicate
-    const dup = mappingData.find((md) => {
+    const dup = mappingData.some((md) => {
       if (md.mapping === 'metadata' && md.id !== id) {
-        return md.name === mItem?.name && md.value === mItem?.value
-          && md.condition === mItem?.condition;
+        return md.name === mItem.name && md.value === mItem.value
+          && md.condition === mItem.condition;
       }
       return false;
     });
@@ -44,8 +39,11 @@ const updateMetadataMapping = (event, mappingData, originalURL) => {
       return;
     }
 
-    if (!mItem) {
-      mappingData.push(newValues);
+    // Fill in the properties on a new item, and push to mapping data.
+    if (!mItem.id) {
+      mItem.id = id;
+      mItem.mapping = 'metadata';
+      mappingData.push(mItem);
     }
 
     saveImporterSectionsMapping(originalURL, mappingData);
@@ -110,6 +108,11 @@ const getMetadataRow = (mappingData, originalURL, mapping) => {
  * @param getRowDeleteButton
  */
 const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
+  // If `getMetadataRowDeleteButton` has already been set, then the metadata view has already
+  // been initialized.
+  if (getMetadataRowDeleteButton) {
+    return;
+  }
   getMetadataRowDeleteButton = getRowDeleteButton;
   const allHidden = METADATA_EDITOR?.querySelectorAll('[class~="hidden"]');
   allHidden.forEach((he) => {
@@ -128,9 +131,9 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
     }
 
     // If there are non-finished rows, do not add another one - focus the first empty field found.
-    const textFields = METADATA_EDITOR.querySelectorAll('.row:not(.header) sp-textfield');
+    const textFields = [...METADATA_EDITOR.querySelectorAll('.row:not(.header) sp-textfield')];
     if (textFields.length > 0) {
-      const emptyTextField = !!textFields && Array.from(textFields).find((sptf) => sptf.value.trim() === '');
+      const emptyTextField = !!textFields && textFields.find((sptf) => sptf.value.trim() === '');
       if (emptyTextField) {
         emptyTextField.focus();
         alert.warning('Please complete all metadata mappings already present.');
