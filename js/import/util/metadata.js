@@ -122,14 +122,6 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
     mappingRows.remove();
   }
 
-  // Display existing metadata values;
-  mappingData
-    .filter((md) => md.mapping === 'metadata')
-    .forEach((metadata) => {
-      const row = getMetadataRow(mappingData, originalURL, metadata);
-      METADATA_EDITOR_SECTIONS.appendChild(row);
-    });
-
   ADD_METADATA_BUTTON?.addEventListener('click', () => {
     if (!METADATA_EDITOR) {
       return;
@@ -152,6 +144,18 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
       getMetadataRow(mappingData, originalURL, { id: metadataId })
     );
   });
+
+  // Display existing metadata values
+  const metadataMappings = mappingData.filter((md) => md.mapping === 'metadata');
+  if (metadataMappings.length === 0) {
+    // If no rows, add one to lead the user.
+    ADD_METADATA_BUTTON.click();
+  } else {
+    metadataMappings.forEach((metadata) => {
+      const row = getMetadataRow(mappingData, originalURL, metadata);
+      METADATA_EDITOR_SECTIONS.appendChild(row);
+    });
+  }
 };
 
 export {

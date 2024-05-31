@@ -25,6 +25,7 @@ import '@spectrum-web-components/asset/sp-asset.js';
 import '@spectrum-web-components/color-handle/sp-color-handle.js';
 import '@spectrum-web-components/picker/sp-picker.js';
 import '@spectrum-web-components/menu/sp-menu-item.js';
+import '@spectrum-web-components/tooltip/sp-tooltip.js';
 
 import '@spectrum-web-components/divider/sp-divider.js';
 import '@spectrum-web-components/help-text/sp-help-text.js';

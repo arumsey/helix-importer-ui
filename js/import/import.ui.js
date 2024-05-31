@@ -639,7 +639,8 @@ const detectSections = async (src, frame) => {
         class: 'move-up',
       }
     );
-    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>';
+    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>'
+      + '<sp-tooltip self-managed>Move this mapping up one row</sp-tooltip>';
     moveUpBtn.addEventListener('click', (e) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
@@ -675,9 +676,9 @@ const detectSections = async (src, frame) => {
     const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
     const selectorDiv = createElement('div', { title: `${title}` });
     selectorDiv.appendChild(domSelector);
+    selectorDiv.appendChild(createElement('sp-tooltip', { 'self-managed': true }, title));
 
     const mappingPicker = getBlockPicker(section.mapping);
-
     const deleteBtn = getRowDeleteButton(mappingData, originalURL);
 
     row.append(color, moveUpBtn, selectorDiv, mappingPicker, deleteBtn);

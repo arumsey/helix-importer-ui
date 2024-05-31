@@ -13,11 +13,14 @@
     align-items: center;
   }
 
-  & h2:not(#metadata-click-detection-prompt) {
-    width: 240px;
+  & h2:not(#metadata-click-detection-prompt),
+  & sp-textfield {
+    width: 30%;
+    min-width: 240px;
   }
 
-  & sp-textfield {
-    width: 240px;
+  & #metadata-editor-add {
+    margin-top: 1rem;
+    align-self: end;
   }
 }
