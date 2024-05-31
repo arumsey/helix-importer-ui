@@ -1,7 +1,6 @@
 @import url("../libs/vendors/codemirror/base16-dark.css");
 
 .import-express #metadata-editor {
-
   & h1 {
     margin: 1rem 1rem 1rem 0;
   }
@@ -24,3 +23,4 @@
     align-self: end;
   }
 }
+

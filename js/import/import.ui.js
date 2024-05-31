@@ -429,7 +429,7 @@ const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`
 const sleep = (ms) => new Promise(
   (resolve) => {
     setTimeout(resolve, ms);
-  }
+  },
 );
 
 const smartScroll = async (window, reset = false) => {
@@ -452,7 +452,7 @@ const detectSections = async (src, frame) => {
   const { originalURL } = frame.dataset;
   const sections = await window.xp.detectSections(
     frame.contentDocument.body,
-    frame.contentWindow.window
+    frame.contentWindow.window,
   );
   const selectedSection = { id: null };
 
@@ -568,7 +568,7 @@ const detectSections = async (src, frame) => {
     }
     if (helpText) {
       textField.appendChild(
-        createElement('sp-help-text', { slot: 'help-text' }, helpText)
+        createElement('sp-help-text', { slot: 'help-text' }, helpText),
       );
     }
 
@@ -637,7 +637,7 @@ const detectSections = async (src, frame) => {
         title: 'Move this item up one row',
         style: `background-color: ${section.color}`,
         class: 'move-up',
-      }
+      },
     );
     moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>'
       + '<sp-tooltip self-managed>Move this mapping up one row</sp-tooltip>';
@@ -671,7 +671,7 @@ const detectSections = async (src, frame) => {
       selector,
       'newSelector',
       true,
-      helpText
+      helpText,
     );
     const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
     const selectorDiv = createElement('div', { title: `${title}` });

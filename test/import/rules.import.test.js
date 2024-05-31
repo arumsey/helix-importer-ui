@@ -31,7 +31,7 @@ const baseRules = {
       type: 'metadata',
       insertMode: 'append',
       params: {
-        metadata: {},
+        cells: {},
       },
     },
   ],
@@ -97,7 +97,7 @@ describe('buildBlockCellsFromMapping tests', () => {
         name: 'series',
       },
     ];
-    const expected = {};
+    const expected = { title: 'Products' };
     const actual = buildBlockCellsFromMapping(mappings);
     assert.equal(JSON.stringify(actual).trim(), JSON.stringify(expected).trim());
   });

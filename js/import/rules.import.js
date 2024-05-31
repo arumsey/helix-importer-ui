@@ -17,7 +17,6 @@ const MAPPING_CONFIG_KEYS = ['name', 'value'];
 const baseTransformRules = {
   cleanup: {
     start: [],
-    end: [],
   },
   blocks: [
     {
@@ -53,7 +52,7 @@ function buildSelector(mapping, basePath) {
   if (mapping.xpath) {
     return xPathToCss(mapping.xpath.replace(basePath, ''));
   }
-  return '';
+  return undefined;
 }
 
 /**
@@ -98,10 +97,9 @@ function buildTransformationRulesFromMapping(mapping) {
   // find root element selector
   const rootMapping = mapping.find((m) => m.mapping === 'root');
   const rootXpath = rootMapping?.xpath ? rootMapping.xpath : XPATH_BODY;
-  // const rootElement = selectElementFromXpath(rootXpath, document);
 
   // add root element selector
-  transformRules.root = rootMapping ? buildSelector(rootMapping, rootXpath) : undefined;
+  transformRules.root = rootMapping ? buildSelector(rootMapping, XPATH_BODY) : undefined;
 
   // add clean up sections
   transformRules.cleanup.start = mapping
@@ -110,7 +108,12 @@ function buildTransformationRulesFromMapping(mapping) {
 
   // process blocks
   const blockMapping = mapping
-    .filter((m) => m.mapping !== 'root' && m.mapping !== 'exclude' && m.mapping !== 'defaultContent')
+    .filter((m) => (
+      m.mapping !== undefined
+      && m.mapping !== 'root'
+      && m.mapping !== 'exclude'
+      && m.mapping !== 'defaultContent'
+    ))
     .reduce((blockMap, m) => {
       if (blockMap[m.mapping]) {
         blockMap[m.mapping].push(m);
@@ -120,19 +123,24 @@ function buildTransformationRulesFromMapping(mapping) {
       return blockMap;
     }, {});
 
-  transformRules.blocks = [
-    ...transformRules.blocks,
-    ...Object.entries(blockMapping).map(([type, mappingList]) => {
-      const existingRules = transformRules.blocks.find((b) => b.type === type);
-      const selectors = mappingList.map((m) => buildSelector(m, XPATH_BODY));
-      const cells = buildBlockCellsFromMapping(mappingList);
-      return {
-        ...existingRules,
-        type,
-        selectors,
-        cells,
-      };
-    })];
+  transformRules.blocks = Object.entries(blockMapping).map(([type, mappingList]) => {
+    const existingRules = transformRules.blocks.find((b) => b.type === type);
+    const selectors = mappingList.map((m) => buildSelector(m, rootXpath)).filter((s) => s);
+    const cells = buildBlockCellsFromMapping(mappingList);
+    return {
+      ...existingRules,
+      type,
+      selectors,
+      params: { cells },
+    };
+  });
+
+  // add missing default blocks
+  baseTransformRules.blocks.forEach((rule) => {
+    if (!transformRules.blocks.find((b) => b.type === rule.type)) {
+      transformRules.blocks = [{ ...rule }, ...transformRules.blocks];
+    }
+  });
 
   return transformRules;
 }
