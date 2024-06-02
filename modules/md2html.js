@@ -41,5 +41,6 @@ export default function md2html(md) {
   rehypeFormat()(hast);
 
   return toHtml(hast, {
+    upperDoctype: true,
   });
 }
