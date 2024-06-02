@@ -1,5 +1,8 @@
 import alert from '../../shared/alert.js';
-import { saveImporterSectionsMapping } from '../../sections-mapping/utils.ui.js';
+import {
+  getImporterSectionsMapping,
+  saveImporterSectionsMapping
+} from '../../sections-mapping/utils.ui.js';
 import { createElement } from '../../shared/utils.js';
 
 const METADATA_EDITOR = document.getElementById('metadata-editor');
@@ -13,52 +16,54 @@ let getMetadataRowDeleteButton;
  * Either find the matching mapping and update it, create a brand new one or indicate that there
  * is a duplicate.
  * @param event
- * @param mappingData
  * @param originalURL
  */
-const updateMetadataMapping = (event, mappingData, originalURL) => {
-  if (event.target.value !== undefined) {
-    const metadataFields = ['name', 'value', 'condition'];
-    const row = event.target.parentElement;
-    const id = row.dataset.metadataId;
-    const mItem = mappingData.find((m) => m.id === id) ?? {};
-    metadataFields.forEach((attr) => {
-      mItem[attr] = row.querySelector(`.metadata-row-${attr}`).value;
-    });
-
-    // Check for duplicate
-    const dup = mappingData.some((md) => {
-      if (md.mapping === 'metadata' && md.id !== id) {
-        return md.name === mItem.name && md.value === mItem.value
-          && md.condition === mItem.condition;
-      }
-      return false;
-    });
-    if (dup) {
-      alert.error('This value already exists. The change was not saved.');
-      return;
-    }
-
-    // Fill in the properties on a new item, and push to mapping data.
-    if (!mItem.id) {
-      mItem.id = id;
-      mItem.mapping = 'metadata';
-      mappingData.push(mItem);
-    }
-
-    saveImporterSectionsMapping(originalURL, mappingData);
+const updateMetadataMapping = (event, originalURL) => {
+  if (event.target.value === undefined) {
+    return;
   }
+
+  const mappingData = getImporterSectionsMapping(originalURL);
+
+  const metadataFields = ['name', 'value', 'condition'];
+  const row = event.target.parentElement;
+  const id = row.dataset.metadataId;
+  const mItem = mappingData.find((m) => m.id === id) ?? {};
+  metadataFields.forEach((attr) => {
+    mItem[attr] = row.querySelector(`.metadata-row-${attr}`).value;
+  });
+
+  // Check for duplicate
+  const dup = mappingData.some((md) => {
+    if (md.mapping === 'metadata' && md.id !== id) {
+      return md.name === mItem.name && md.value === mItem.value
+        && md.condition === mItem.condition;
+    }
+    return false;
+  });
+  if (dup) {
+    alert.error('This value already exists. The change was not saved.');
+    return;
+  }
+
+  // Fill in the properties on a new item, and push to mapping data.
+  if (!mItem.id) {
+    mItem.id = id;
+    mItem.mapping = 'metadata';
+    mappingData.push(mItem);
+  }
+
+  saveImporterSectionsMapping(originalURL, mappingData);
 };
 
 /**
  * Get the elements required to create a metadata row in the UI.  Set values if given.  The caller
  * is to append it to whatever element they deem suitable.
- * @param mappingData
  * @param originalURL
  * @param mapping
  * @returns {any}
  */
-const getMetadataRow = (mappingData, originalURL, mapping) => {
+const getMetadataRow = (originalURL, mapping) => {
   const metadataRow = createElement('div', { class: 'row', 'data-metadata-id': mapping.id });
   const nameField = createElement(
     'sp-textfield',
@@ -81,20 +86,20 @@ const getMetadataRow = (mappingData, originalURL, mapping) => {
     {
       class: 'metadata-row-condition',
       placeHolder: 'Enter condition',
-      value: mapping.condition ?? ''
+      value: mapping.condition ?? '*'
     }
   );
 
-  const delButton = getMetadataRowDeleteButton(mappingData, originalURL);
+  const delButton = getMetadataRowDeleteButton(originalURL);
   metadataRow.append(nameField, valueField, urlField, delButton);
   nameField.addEventListener('change', (e) => {
-    updateMetadataMapping(e, mappingData, originalURL);
+    updateMetadataMapping(e, originalURL);
   });
   valueField.addEventListener('change', (e) => {
-    updateMetadataMapping(e, mappingData, originalURL);
+    updateMetadataMapping(e, originalURL);
   });
   urlField.addEventListener('change', (e) => {
-    updateMetadataMapping(e, mappingData, originalURL);
+    updateMetadataMapping(e, originalURL);
   });
 
   return metadataRow;
@@ -103,28 +108,19 @@ const getMetadataRow = (mappingData, originalURL, mapping) => {
 /**
  * After the mappings are read in, and the detection has been run, set up the metadata
  * mappings in the customization tab.
- * @param mappingData
- * @param originalURL
+ * @param importURL
  * @param getRowDeleteButton
  */
-const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
-  // If `getMetadataRowDeleteButton` has already been set, then the metadata view has already
-  // been initialized.
-  if (getMetadataRowDeleteButton) {
-    return;
-  }
+const initializeMetadata = (importURL, getRowDeleteButton) => {
+  const mappingData = getImporterSectionsMapping(importURL);
   getMetadataRowDeleteButton = getRowDeleteButton;
+
   const allHidden = METADATA_EDITOR?.querySelectorAll('[class~="hidden"]');
   allHidden.forEach((he) => {
     he.classList.remove('hidden');
   });
   METADATA_EDITOR?.querySelector('#metadata-click-detection-prompt').classList.add('hidden');
-
-  const mappingRows = METADATA_EDITOR.querySelectorAll('div.row:not(.header)');
-  if (mappingRows.length > 0) {
-    mappingRows.remove();
-  }
-
+  METADATA_EDITOR.querySelectorAll('div.row:not(.header)').forEach((mr) => mr.remove());
   ADD_METADATA_BUTTON?.addEventListener('click', () => {
     if (!METADATA_EDITOR) {
       return;
@@ -144,7 +140,7 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
     // Add a new metadata row.
     const metadataId = `metadata-${Date.now()}`;
     METADATA_EDITOR_SECTIONS.appendChild(
-      getMetadataRow(mappingData, originalURL, { id: metadataId })
+      getMetadataRow(importURL, { id: metadataId })
     );
   });
 
@@ -155,7 +151,7 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
     ADD_METADATA_BUTTON.click();
   } else {
     metadataMappings.forEach((metadata) => {
-      const row = getMetadataRow(mappingData, originalURL, metadata);
+      const row = getMetadataRow(importURL, metadata);
       METADATA_EDITOR_SECTIONS.appendChild(row);
     });
   }
@@ -165,5 +161,4 @@ export {
   METADATA_EDITOR,
   ADD_METADATA_BUTTON,
   initializeMetadata,
-  updateMetadataMapping,
 };

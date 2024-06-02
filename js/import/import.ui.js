@@ -484,18 +484,8 @@ const detectSections = async (src, frame) => {
     },
   });
 
-  let mappingData = [
-    // {
-    //   id: <sectionId>,
-    //   xpath: <xpath>,
-    //   id: <optional: id from box>
-    //   classes: <optional: classes from box>
-    //   mapping: <mapping>,
-    // },
-  ];
-
   // Delete a row from the UI and remove its contents from the saved mappings.
-  const getRowDeleteButton = () => {
+  const getRowDeleteButton = (url) => {
     const deleteBtn = document.createElement('sp-button');
     deleteBtn.setAttribute('variant', 'negative');
     deleteBtn.setAttribute('icon-only', '');
@@ -503,12 +493,13 @@ const detectSections = async (src, frame) => {
     deleteBtn.addEventListener('click', (e) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
+        let mappingData = getImporterSectionsMapping(originalURL);
         const id = rowEl.dataset.sectionId ?? rowEl.dataset.metadataId;
         // eslint-disable-next-line no-param-reassign
         mappingData = mappingData.filter((m) => m.id !== id);
 
         // save sections mapping data
-        saveImporterSectionsMapping(originalURL, mappingData);
+        saveImporterSectionsMapping(url, mappingData);
 
         rowEl.remove();
       }
@@ -518,6 +509,7 @@ const detectSections = async (src, frame) => {
   };
 
   function saveMappingChange({ newMapping, newSelector }) {
+    const mappingData = getImporterSectionsMapping(originalURL);
     // update mapping data
     const mItem = mappingData.find((m) => m.id === selectedSection.id);
     if (mItem) {
@@ -620,7 +612,7 @@ const detectSections = async (src, frame) => {
     return blockPickerDiv;
   }
 
-  function getMappingRow(section, idx = 1) {
+  function getMappingRow(section, mappingData, idx = 1) {
     const row = document.createElement('div');
     row.dataset.idx = `${idx}`;
     row.dataset.sectionId = section.id;
@@ -679,7 +671,7 @@ const detectSections = async (src, frame) => {
     selectorDiv.appendChild(createElement('sp-tooltip', { 'self-managed': true }, title));
 
     const mappingPicker = getBlockPicker(section.mapping);
-    const deleteBtn = getRowDeleteButton(mappingData, originalURL);
+    const deleteBtn = getRowDeleteButton(originalURL);
 
     row.append(color, moveUpBtn, selectorDiv, mappingPicker, deleteBtn);
 
@@ -706,19 +698,7 @@ const detectSections = async (src, frame) => {
     return row;
   }
 
-  // Initialize mappingData, if need be.
-  if (!mappingData || mappingData.length === 0) {
-    try {
-      const mapping = getImporterSectionsMapping(originalURL);
-      if (mapping) {
-        mappingData = mapping;
-      }
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(`Error loading sections mapping data for url ${originalURL}`, e);
-      return;
-    }
-  }
+  const mappingData = getImporterSectionsMapping(originalURL);
 
   // Set up the non-metadata (customized) blocks.
   mappingData.filter((md) => md.mapping !== 'metadata').forEach((m) => {
@@ -727,14 +707,15 @@ const detectSections = async (src, frame) => {
   });
 
   frame.contentDocument.body.addEventListener('click', (e) => {
+    const clickMappingData = getImporterSectionsMapping(originalURL);
     const overlayDiv = e.target; // .closest('.xp-overlay');
     if (overlayDiv.dataset.boxData) {
       const section = JSON.parse(overlayDiv.dataset.boxData);
       section.color = overlayDiv.style.borderColor;
       section.mapping = 'unset';
 
-      if (!mappingData.find((m) => m.id === section.id)) {
-        mappingData.push({
+      if (!clickMappingData.find((m) => m.id === section.id)) {
+        clickMappingData.push({
           id: section.id,
           selector: section.selector,
           xpath: section.xpath,
@@ -743,12 +724,12 @@ const detectSections = async (src, frame) => {
         });
         const row = getMappingRow(section, MAPPING_EDITOR_SECTIONS.children.length);
         MAPPING_EDITOR_SECTIONS.appendChild(row);
-        saveImporterSectionsMapping(originalURL, mappingData);
+        saveImporterSectionsMapping(originalURL, clickMappingData);
       }
     }
   });
 
-  initializeMetadata(mappingData, originalURL, getRowDeleteButton);
+  initializeMetadata(originalURL, getRowDeleteButton);
 };
 
 const attachListeners = () => {

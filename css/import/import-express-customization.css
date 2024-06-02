@@ -13,6 +13,10 @@
     align-items: center;
   }
 
+  & .row > div.icon-aligner {
+    min-width: 32px;
+  }
+
   & h2:not(#metadata-click-detection-prompt),
   & sp-textfield {
     width: 30%;
