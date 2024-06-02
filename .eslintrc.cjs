@@ -22,13 +22,6 @@ module.exports = {
     'import/extensions': ['error', {
       js: 'always',
     }],
-    'comma-dangle': ["error", {
-      "arrays": "only-multiline",
-      "objects": "only-multiline",
-      "imports": "only-multiline",
-      "exports": "always",
-      "functions": "never"
-    }],
   },
   plugins: ['import'],
   settings: {

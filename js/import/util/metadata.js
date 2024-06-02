@@ -65,24 +65,24 @@ const getMetadataRow = (mappingData, originalURL, mapping) => {
     {
       class: 'metadata-row-name',
       placeHolder: 'Enter metadata name',
-      value: mapping.name ?? ''
-    }
+      value: mapping.name ?? '',
+    },
   );
   const valueField = createElement(
     'sp-textfield',
     {
       class: 'metadata-row-value',
       placeHolder: 'Enter metadata value',
-      value: mapping.value ?? ''
-    }
+      value: mapping.value ?? '',
+    },
   );
   const urlField = createElement(
     'sp-textfield',
     {
       class: 'metadata-row-condition',
       placeHolder: 'Enter condition',
-      value: mapping.condition ?? ''
-    }
+      value: mapping.condition ?? '',
+    },
   );
 
   const delButton = getMetadataRowDeleteButton(mappingData, originalURL);
@@ -144,7 +144,7 @@ const initializeMetadata = (mappingData, originalURL, getRowDeleteButton) => {
     // Add a new metadata row.
     const metadataId = `metadata-${Date.now()}`;
     METADATA_EDITOR_SECTIONS.appendChild(
-      getMetadataRow(mappingData, originalURL, { id: metadataId })
+      getMetadataRow(mappingData, originalURL, { id: metadataId }),
     );
   });
 

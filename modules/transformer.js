@@ -27,6 +27,7 @@ export default class Transformer {
    * @return Transformed root element
    */
   static transform(rules, source) {
+    // eslint-disable-next-line no-console
     console.log('Transformer Rules', rules);
     const { document } = source;
 

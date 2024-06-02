@@ -78,10 +78,14 @@ export default function parse(el, { document }) {
   });
 
   el.querySelectorAll('div').forEach((d) => {
+    // eslint-disable-next-line no-console
     console.log(getXPath(d, document, true));
+    // eslint-disable-next-line no-console
     console.log(d.getBoundingClientRect());
     if (d.dataset.hlxImpRect) {
+      // eslint-disable-next-line no-console
       console.log(d.dataset.hlxImpRect);
+      // eslint-disable-next-line no-console
       console.log(JSON.parse(d.dataset.hlxImpRect));
     }
   });

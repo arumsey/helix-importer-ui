@@ -114,8 +114,7 @@ let pickerType;
 let pickerField;
 const capture = (event) => {
   if (pickerType) {
-    const style = getStyle(event.view.window, event.clientX, event.clientY, pickerType);
-    return style;
+    return getStyle(event.view.window, event.clientX, event.clientY, pickerType);
   }
   return null;
 };
@@ -123,8 +122,7 @@ const capture = (event) => {
 const saveCapture = (event) => {
   if (pickerField) {
     try {
-      const style = capture(event);
-      pickerField.value = style;
+      pickerField.value = capture(event);
       pickerField.handleChange();
     } catch (e) {
       // eslint-disable-next-line no-console
