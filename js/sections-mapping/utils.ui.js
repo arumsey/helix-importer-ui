@@ -110,14 +110,14 @@ function saveImporterSectionsMapping(url, mapping) {
       } else {
         allMappings.push({
           url,
-          sortedMapping,
+          mapping: sortedMapping,
         });
       }
     } else {
       // Local-Storage was empty or contained the old one-url way, just write the whole mapping.
       allMappings = [{
         url,
-        sortedMapping,
+        mapping: sortedMapping,
       }];
     }
 
