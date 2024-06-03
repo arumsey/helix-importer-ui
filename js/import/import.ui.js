@@ -114,9 +114,9 @@ const loadResult = ({ md, html: outputHTML }, originalURL) => {
     ui.markdownEditor?.setValue(md || '');
 
     if (ui.markdownPreview) {
-      const mdPreview = WebImporter.md2html(md);
-      // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
-      ui.markdownPreview.innerHTML = mdPreview;
+      // XSS review: we need interpreted HTML (from md2html) here
+      // - <script> tags are removed by importer anyway
+      ui.markdownPreview.innerHTML = WebImporter.md2html(md);
       // remove existing classes and styles
       Array.from(ui.markdownPreview.querySelectorAll('[class], [style]')).forEach((t) => {
         t.removeAttribute('class');
@@ -1191,6 +1191,10 @@ const init = () => {
 
   if (!IS_BULK) setupUI();
   attachListeners();
+
+  if (IS_EXPRESS && config.fields['import-detect-on-load'] && config.fields['import-url']) {
+    DETECT_BUTTON?.click();
+  }
 };
 
 init();

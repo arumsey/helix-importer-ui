@@ -5,7 +5,11 @@ const doAlert = (message, variant) => {
   toast.setAttribute('timeout', 1);
   toast.setAttribute('variant', variant);
   toast.setAttribute('open', true);
-  toast.textContent = message;
+  if (message.includes('http://localhost:')) {
+    toast.textContent = decodeURIComponent(message.replace(/http(.*?)host=/, ''));
+  } else {
+    toast.textContent = message;
+  }
   toast.addEventListener('close', () => {
     toast.remove();
   });
