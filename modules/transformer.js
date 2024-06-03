@@ -53,7 +53,8 @@ export default class Transformer {
         type, variants, selectors, parse, insertMode = 'replace', params = {},
       } = blockCfg;
       const parserFn = parse || parsers[type] || parsers.block;
-      const elements = selectors
+      const validSelectors = selectors ? selectors.filter(isValidCSSSelector) : [];
+      const elements = validSelectors.length
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
         : [main];
       // process every element for this block
@@ -116,8 +117,8 @@ export default class Transformer {
         cfgValue = [
           ...element.querySelectorAll(selector)]
           .map((el) => el.textContent || el.content);
-        if (cfgValue.length === 1) {
-          [cfgValue] = cfgValue;
+        if (cfgValue.length <= 1) {
+          [cfgValue = selector] = cfgValue;
         }
       }
       if (cfgValue !== undefined) {
