@@ -28,6 +28,7 @@ const PREVIEW_CONTAINER = document.querySelector(`${PARENT_SELECTOR} .page-previ
 
 const IMPORTFILEURL_FIELD = document.getElementById('import-file-url');
 const IMPORT_BUTTON = document.getElementById('import-doimport-button');
+const IMPORT_URL_FIELD = document.getElementById('import-url');
 
 // const SAVEASWORD_BUTTON = document.getElementById('saveAsWord');
 const FOLDERNAME_SPAN = document.getElementById('folder-name');
@@ -1168,6 +1169,12 @@ const attachListeners = () => {
     const importURL = config.fields['import-url'];
     if (importURL && importURL.length > 0) {
       window.open(importURL, '_blank');
+    }
+  });
+
+  IMPORT_URL_FIELD?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && IS_EXPRESS && config.fields['import-url']) {
+      DETECT_BUTTON?.click();
     }
   });
 
