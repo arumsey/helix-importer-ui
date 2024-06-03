@@ -18,7 +18,7 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { defaultMappingsConfiguration, getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import buildTransformationRulesFromMapping from './rules.import.js';
+import { buildTransformationRulesFromMapping } from './rules.import.js';
 import TransformFactory from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';

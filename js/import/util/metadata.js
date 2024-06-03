@@ -114,7 +114,6 @@ const getMetadataRow = (originalURL, mapping) => {
 const initializeMetadata = (importURL, getRowDeleteButton) => {
   const mappingData = getImporterSectionsMapping(importURL);
   getMetadataRowDeleteButton = getRowDeleteButton;
-
   const allHidden = METADATA_EDITOR?.querySelectorAll('[class~="hidden"]');
   allHidden.forEach((he) => {
     he.classList.remove('hidden');
