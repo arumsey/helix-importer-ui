@@ -52,7 +52,10 @@ export default {
         keyCode: 27,
       }),
     );
-    document.elementFromPoint(0, 0).click();
+    const topLeft = document.elementFromPoint(0, 0);
+    if (topLeft) {
+      topLeft.click();
+    }
 
     // mark hidden divs + add bounding client rect data to all "visible" divs
     document.querySelectorAll('div').forEach((div) => {
@@ -152,13 +155,11 @@ export default {
     // // make every report value a string
     // Object.keys(IMPORT_REPORT).map(k => (IMPORT_REPORT[k] = '' + IMPORT_REPORT[k]));
 
-    const elements = [{
+    return [{
       element: importedContent,
       path: generateDocumentPath({ document, url: params.originalURL }),
       report: IMPORT_REPORT,
     }];
-
-    return elements;
   },
 
   /**
