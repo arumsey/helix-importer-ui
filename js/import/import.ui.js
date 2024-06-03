@@ -17,7 +17,7 @@ import { asyncForEach, getElementByXpath, createElement } from '../shared/utils.
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
-import { getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
+import { defaultMappingsConfiguration, getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
 import buildTransformationRulesFromMapping from './rules.import.js';
 import TransformFactory from '../shared/transformfactory.js';
 
@@ -285,7 +285,7 @@ const postSuccessfulStep = async (results, originalURL) => {
       if (config.fields['import-local-docx'] && docx) {
         files.push({ type: 'docx', filename, data: docx });
       } else if (config.fields['import-local-html'] && html) {
-        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head></head>${html}</html>` });
+        files.push({ type: 'html', filename: `${path}.html`, data: `<html lang="en"><head><title>Import</title></title></head>${html}</html>` });
       } else if (config.fields['import-local-md'] && md) {
         files.push({ type: 'md', filename: `${path}.md`, data: md });
       }
@@ -429,7 +429,7 @@ const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`
 const sleep = (ms) => new Promise(
   (resolve) => {
     setTimeout(resolve, ms);
-  }
+  },
 );
 
 const smartScroll = async (window, reset = false) => {
@@ -452,7 +452,7 @@ const detectSections = async (src, frame) => {
   const { originalURL } = frame.dataset;
   const sections = await window.xp.detectSections(
     frame.contentDocument.body,
-    frame.contentWindow.window
+    frame.contentWindow.window,
   );
   const selectedSection = { id: null };
 
@@ -560,7 +560,7 @@ const detectSections = async (src, frame) => {
     }
     if (helpText) {
       textField.appendChild(
-        createElement('sp-help-text', { slot: 'help-text' }, helpText)
+        createElement('sp-help-text', { slot: 'help-text' }, helpText),
       );
     }
 
@@ -573,20 +573,7 @@ const detectSections = async (src, frame) => {
     blockPicker.setAttribute('label', 'Mapping ...');
     blockPicker.setAttribute('id', 'block-picker');
 
-    [
-      [
-        { label: 'Root', attributes: { value: 'root' } },
-        { label: 'Exclude', attributes: { value: 'exclude' } },
-      ],
-      [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
-      [
-        { label: 'Hero', attributes: { value: 'hero' } },
-        { label: 'Cards', attributes: { value: 'cards' } },
-        { label: 'Columns', attributes: { value: 'columns' } },
-        { label: 'Carousel', attributes: { value: 'carousel' } },
-      ],
-      [{ label: 'Snapshot', attributes: { value: 'snapshot', disabled: true } }],
-    ].forEach((group, idx, arr) => {
+    defaultMappingsConfiguration.forEach((group, idx, arr) => {
       group.forEach((item) => {
         const mItem = document.createElement('sp-menu-item');
         item.attributes = item.attributes || [];
@@ -612,7 +599,7 @@ const detectSections = async (src, frame) => {
     return blockPickerDiv;
   }
 
-  function getMappingRow(section, mappingData, idx = 1) {
+  function getMappingRow(section, idx = 1) {
     const row = document.createElement('div');
     row.dataset.idx = `${idx}`;
     row.dataset.sectionId = section.id;
@@ -629,13 +616,14 @@ const detectSections = async (src, frame) => {
         title: 'Move this item up one row',
         style: `background-color: ${section.color}`,
         class: 'move-up',
-      }
+      },
     );
     moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>'
       + '<sp-tooltip self-managed>Move this mapping up one row</sp-tooltip>';
     moveUpBtn.addEventListener('click', (e) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
+        const mappingData = getImporterSectionsMapping(originalURL);
         const id = rowEl.dataset.sectionId;
         const index = mappingData.findIndex((m) => m.id === id);
         if (index >= 0) {
@@ -644,8 +632,13 @@ const detectSections = async (src, frame) => {
 
           // save sections mapping data
           saveImporterSectionsMapping(originalURL, mappingData);
-
           rowEl.parentNode.insertBefore(rowEl, rowEl.previousElementSibling);
+
+          // Give a little visual feedback that the row was moved.
+          rowEl.style.backgroundColor = 'blue';
+          setTimeout(() => {
+            rowEl.style.backgroundColor = '';
+          }, 300);
         }
       }
     });
@@ -663,7 +656,7 @@ const detectSections = async (src, frame) => {
       selector,
       'newSelector',
       true,
-      helpText
+      helpText,
     );
     const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
     const selectorDiv = createElement('div', { title: `${title}` });
@@ -738,10 +731,10 @@ const attachListeners = () => {
   function pageLoadFailed(src, url, res) {
     // eslint-disable-next-line no-console
     console.warn(
-      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`,
     );
     alert.error(
-      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`
+      `Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`,
     );
     importStatus.rows.push({
       url,
@@ -903,7 +896,7 @@ const attachListeners = () => {
                       // auto generate transformation config
                       const mapping = getImporterSectionsMapping(originalURL) || [];
                       transform = TransformFactory.create(
-                        buildTransformationRulesFromMapping(mapping)
+                        buildTransformationRulesFromMapping(mapping),
                       );
                     }
                     config.importer.setTransformationInput({

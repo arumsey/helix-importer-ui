@@ -1,3 +1,23 @@
+/**
+ * Default mappings configuration. This is used to display the mappings in the UI, and to keep
+ * the saved values sorted first.
+ * @type {([{attributes: {value: string}, label: string},{attributes: {value: string}, label: string}]|[{attributes: {value: string}, label: string}]|[{attributes: {value: string}, label: string},{attributes: {value: string}, label: string},{attributes: {value: string}, label: string},{attributes: {value: string}, label: string}]|[{attributes: {disabled: boolean, value: string}, label: string}])[]}
+ */
+const defaultMappingsConfiguration = [
+  [
+    { label: 'Root', attributes: { value: 'root' } },
+    { label: 'Exclude', attributes: { value: 'exclude' } },
+  ],
+  [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
+  [
+    { label: 'Hero', attributes: { value: 'hero' } },
+    { label: 'Cards', attributes: { value: 'cards' } },
+    { label: 'Columns', attributes: { value: 'columns' } },
+    { label: 'Carousel', attributes: { value: 'carousel' } },
+  ],
+  [{ label: 'Snapshot', attributes: { value: 'snapshot', disabled: true } }],
+];
+
 // Keep a cache to reduce localstorage access.
 let mappingDataCache = {};
 
@@ -48,6 +68,22 @@ function getImporterSectionsMapping(url) {
   return mappingDataCache.mappings;
 }
 
+const sortMappings = (mappings) => {
+  const defaultMapping = defaultMappingsConfiguration
+    .flat()
+    .map((dm) => {
+      return dm?.attributes.value;
+    });
+  return mappings.sort((mapping1, mapping2) => {
+    if (mapping1.mapping === mapping2.mapping) {
+      return 0;
+    } else if (defaultMapping.includes(mapping1.mapping)) {
+      return -1;
+    }
+    return 1;
+  });
+}
+
 /**
  * Write (or overwrite) the Mapping for the provided (base?) URL to the local-storage while
  * maintaining the mappings for other URLs.
@@ -58,6 +94,8 @@ function getImporterSectionsMapping(url) {
 function saveImporterSectionsMapping(url, mapping) {
   // Reset cache
   mappingDataCache = {};
+  // Sort mappings so 'move-up' will work easily.
+  const sortedMapping = sortMappings(mapping);
 
   try {
     let allMappings = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
@@ -67,19 +105,19 @@ function saveImporterSectionsMapping(url, mapping) {
         if (mapping.length === 0) {
           allMappings.splice(index, 1);
         } else {
-          allMappings[index].mapping = mapping;
+          allMappings[index].mapping = sortedMapping;
         }
       } else {
         allMappings.push({
           url,
-          mapping,
+          sortedMapping,
         });
       }
     } else {
       // Local-Storage was empty or contained the old one-url way, just write the whole mapping.
       allMappings = [{
         url,
-        mapping,
+        sortedMapping,
       }];
     }
 
@@ -92,6 +130,7 @@ function saveImporterSectionsMapping(url, mapping) {
 }
 
 export {
+  defaultMappingsConfiguration,
   getImporterSectionsMapping,
   saveImporterSectionsMapping,
 };

@@ -1,7 +1,7 @@
 import alert from '../../shared/alert.js';
 import {
   getImporterSectionsMapping,
-  saveImporterSectionsMapping
+  saveImporterSectionsMapping,
 } from '../../sections-mapping/utils.ui.js';
 import { createElement } from '../../shared/utils.js';
 
@@ -70,24 +70,24 @@ const getMetadataRow = (originalURL, mapping) => {
     {
       class: 'metadata-row-name',
       placeHolder: 'Enter metadata name',
-      value: mapping.name ?? ''
-    }
+      value: mapping.name ?? '',
+    },
   );
   const valueField = createElement(
     'sp-textfield',
     {
       class: 'metadata-row-value',
       placeHolder: 'Enter metadata value',
-      value: mapping.value ?? ''
-    }
+      value: mapping.value ?? '',
+    },
   );
   const urlField = createElement(
     'sp-textfield',
     {
       class: 'metadata-row-condition',
       placeHolder: 'Enter condition',
-      value: mapping.condition ?? '*'
-    }
+      value: mapping.condition ?? '*',
+    },
   );
 
   const delButton = getMetadataRowDeleteButton(originalURL);
@@ -129,7 +129,7 @@ const initializeMetadata = (importURL, getRowDeleteButton) => {
     // If there are non-finished rows, do not add another one - focus the first empty field found.
     const textFields = [...METADATA_EDITOR.querySelectorAll('.row:not(.header) sp-textfield')];
     if (textFields.length > 0) {
-      const emptyTextField = !!textFields && textFields.find((sptf) => sptf.value.trim() === '');
+      const emptyTextField = !!textFields && textFields.find((tf) => tf.value.trim() === '');
       if (emptyTextField) {
         emptyTextField.focus();
         alert.warning('Please complete all metadata mappings already present.');
@@ -140,7 +140,7 @@ const initializeMetadata = (importURL, getRowDeleteButton) => {
     // Add a new metadata row.
     const metadataId = `metadata-${Date.now()}`;
     METADATA_EDITOR_SECTIONS.appendChild(
-      getMetadataRow(importURL, { id: metadataId })
+      getMetadataRow(importURL, { id: metadataId }),
     );
   });
 
