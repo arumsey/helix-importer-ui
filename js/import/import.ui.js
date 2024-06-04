@@ -506,7 +506,9 @@ const detectSections = async (src, frame) => {
       }
     });
 
-    return deleteBtn;
+    const buttonContainer = document.createElement('div');
+    buttonContainer.append(deleteBtn);
+    return buttonContainer;
   };
 
   function saveMappingChange({ newMapping, newSelector }) {
@@ -609,6 +611,7 @@ const detectSections = async (src, frame) => {
     const selector = !section.selector ? '' : section.selector;
 
     const color = createElement('div', { id: 'sec-color', class: 'sec-color', style: `background-color: ${section.color || 'white'}` });
+    const moveUpBtnContainer = document.createElement('div');
     const moveUpBtn = createElement(
       'sp-button',
       {
@@ -643,6 +646,7 @@ const detectSections = async (src, frame) => {
         }
       }
     });
+    moveUpBtnContainer.append(moveUpBtn);
 
     let helpText;
     if (selector?.length > 0) {
@@ -667,7 +671,7 @@ const detectSections = async (src, frame) => {
     const mappingPicker = getBlockPicker(section.mapping);
     const deleteBtn = getRowDeleteButton(originalURL);
 
-    row.append(color, moveUpBtn, selectorDiv, mappingPicker, deleteBtn);
+    row.append(color, moveUpBtnContainer, selectorDiv, mappingPicker, deleteBtn);
 
     row.addEventListener('mouseenter', (e) => {
       const target = e.target.nodeName === 'DIV' ? e.target : e.target.closest('.row');
