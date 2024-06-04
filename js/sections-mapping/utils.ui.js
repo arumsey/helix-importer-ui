@@ -21,6 +21,14 @@ const defaultMappingsConfiguration = [
 // Keep a cache to reduce localstorage access.
 let mappingDataCache = {};
 
+const isDefaultMapping = (mapping) => {
+  return defaultMappingsConfiguration
+    .flat()
+    .map((dm) => {
+      return dm?.attributes.value;
+    }).includes(mapping.mapping) || !!mapping.xpath
+}
+
   /**
  * Retrieve the Mapping for the provided URL from the local-storage.  A mapping is an array with
  * objects that contain:
@@ -68,20 +76,16 @@ function getImporterSectionsMapping(url) {
   return mappingDataCache.mappings;
 }
 
-const sortMappings = (mappings) => {
-  const defaultMapping = defaultMappingsConfiguration
-    .flat()
-    .map((dm) => {
-      return dm?.attributes.value;
-    });
-  return mappings.sort((mapping1, mapping2) => {
-    if (mapping1.mapping === mapping2.mapping) {
-      return 0;
-    } else if (defaultMapping.includes(mapping1.mapping)) {
-      return -1;
-    }
-    return 1;
-  });
+/**
+ * Arrange the mappings to have the 'default' mappings first (without changing their order) and
+ * the rest of the mappings (like metadata) after.
+ * @param mappings
+ * @returns {*[]}
+ */
+const arrangeMappings = (mappings) => {
+  const defaultMappings = mappings.filter((m) => isDefaultMapping(m));
+  const otherMappings = mappings.filter((m) => !isDefaultMapping(m));
+  return [...defaultMappings, ...otherMappings];
 }
 
 /**
@@ -94,8 +98,9 @@ const sortMappings = (mappings) => {
 function saveImporterSectionsMapping(url, mapping) {
   // Reset cache
   mappingDataCache = {};
-  // Sort mappings so 'move-up' will work easily.
-  const sortedMapping = sortMappings(mapping);
+
+  // Arrange mappings so 'move-up' will work correctly.
+  const arrangedMappings = arrangeMappings(mapping);
 
   try {
     let allMappings = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
@@ -105,19 +110,19 @@ function saveImporterSectionsMapping(url, mapping) {
         if (mapping.length === 0) {
           allMappings.splice(index, 1);
         } else {
-          allMappings[index].mapping = sortedMapping;
+          allMappings[index].mapping = arrangedMappings;
         }
       } else {
         allMappings.push({
           url,
-          mapping: sortedMapping,
+          mapping: arrangedMappings,
         });
       }
     } else {
       // Local-Storage was empty or contained the old one-url way, just write the whole mapping.
       allMappings = [{
         url,
-        mapping: sortedMapping,
+        mapping: arrangedMappings,
       }];
     }
 
@@ -131,6 +136,7 @@ function saveImporterSectionsMapping(url, mapping) {
 
 export {
   defaultMappingsConfiguration,
+  isDefaultMapping,
   getImporterSectionsMapping,
   saveImporterSectionsMapping,
 };
