@@ -28,6 +28,7 @@ const PREVIEW_CONTAINER = document.querySelector(`${PARENT_SELECTOR} .page-previ
 
 const IMPORTFILEURL_FIELD = document.getElementById('import-file-url');
 const IMPORT_BUTTON = document.getElementById('import-doimport-button');
+const IMPORT_URL_FIELD = document.getElementById('import-url');
 
 // const SAVEASWORD_BUTTON = document.getElementById('saveAsWord');
 const FOLDERNAME_SPAN = document.getElementById('folder-name');
@@ -114,9 +115,9 @@ const loadResult = ({ md, html: outputHTML }, originalURL) => {
     ui.markdownEditor?.setValue(md || '');
 
     if (ui.markdownPreview) {
-      const mdPreview = WebImporter.md2html(md);
-      // XSS review: we need interpreted HTML here - <script> tags are removed by importer anyway
-      ui.markdownPreview.innerHTML = mdPreview;
+      // XSS review: we need interpreted HTML (from md2html) here
+      // - <script> tags are removed by importer anyway
+      ui.markdownPreview.innerHTML = WebImporter.md2html(md);
       // remove existing classes and styles
       Array.from(ui.markdownPreview.querySelectorAll('[class], [style]')).forEach((t) => {
         t.removeAttribute('class');
@@ -1171,6 +1172,12 @@ const attachListeners = () => {
     }
   });
 
+  IMPORT_URL_FIELD?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && IS_EXPRESS && config.fields['import-url']) {
+      DETECT_BUTTON?.click();
+    }
+  });
+
   if (SPTABS) {
     SPTABS.addEventListener('change', () => {
       // required for code to load in editors
@@ -1191,6 +1198,10 @@ const init = () => {
 
   if (!IS_BULK) setupUI();
   attachListeners();
+
+  if (IS_EXPRESS && config.fields['import-detect-on-load'] && config.fields['import-url']) {
+    DETECT_BUTTON?.click();
+  }
 };
 
 init();

@@ -145,15 +145,21 @@ const initializeMetadata = (importURL, getRowDeleteButton) => {
 
   // Display existing metadata values
   const metadataMappings = mappingData.filter((md) => md.mapping === 'metadata');
-  if (metadataMappings.length === 0) {
-    // If no rows, add one to lead the user.
-    ADD_METADATA_BUTTON.click();
-  } else {
+  if (metadataMappings.length > 0) {
     metadataMappings.forEach((metadata) => {
       const row = getMetadataRow(importURL, metadata);
       METADATA_EDITOR_SECTIONS.appendChild(row);
     });
   }
+
+  // Add a blank row when activated - ensure a blank one doesn't already exist.
+  document.querySelector('[value="block-customization"]').addEventListener('click', () => {
+    const textFields = [...METADATA_EDITOR.querySelectorAll('.row:not(.header) sp-textfield')];
+    if (textFields.length === 0) {
+      // If no rows, add one to lead the user after UI resets.
+      ADD_METADATA_BUTTON.click();
+    }
+  });
 };
 
 export {

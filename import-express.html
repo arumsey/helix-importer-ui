@@ -75,6 +75,9 @@
                                         <sp-checkbox class="option-field" id="import-scroll-to-bottom" checked>
                                             Scroll to bottom
                                         </sp-checkbox>
+                                        <sp-checkbox class="option-field" id="import-detect-on-load" checked>
+                                            Detect Sections when page loads
+                                        </sp-checkbox>
 
                                         <sp-field-label for="import-custom-headers">Custom headers</sp-field-label>
                                         <sp-textfield class="option-field" id="import-custom-headers" multiline placeholder="Define your custom headers as a JSON object with key/value (header name/header value)"></sp-textfield>
@@ -149,7 +152,7 @@
                             <sp-tab-panel value="import-transform">
                                 <div data-panel="source">
                                     <div class="code">
-                                        <textarea id="import-transform-source" rows="4" cols="10"></textarea>
+                                        <textarea aria-label="Transform Source" id="import-transform-source" rows="4" cols="10"></textarea>
                                     </div>
                                 </div>
                             </sp-tab-panel>
