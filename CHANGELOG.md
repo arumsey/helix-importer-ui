@@ -1,3 +1,24 @@
+## [1.51.17](https://github.com/adobe/helix-importer-ui/compare/v1.51.16...v1.51.17) (2024-06-04)
+
+
+### Bug Fixes
+
+* define process ([#366](https://github.com/adobe/helix-importer-ui/issues/366)) ([90c3107](https://github.com/adobe/helix-importer-ui/commit/90c3107f31f97a9158af308377ceba11faabf03c))
+
+## [1.51.16](https://github.com/adobe/helix-importer-ui/compare/v1.51.15...v1.51.16) (2024-06-02)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/helix-importer to v3.4.1 ([#363](https://github.com/adobe/helix-importer-ui/issues/363)) ([cea2f8f](https://github.com/adobe/helix-importer-ui/commit/cea2f8f834922f46f427540ba671166e39a79448))
+
+## [1.51.15](https://github.com/adobe/helix-importer-ui/compare/v1.51.14...v1.51.15) (2024-06-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @adobe/mdast-util-gridtables to v4.0.5 ([#362](https://github.com/adobe/helix-importer-ui/issues/362)) ([4d0c458](https://github.com/adobe/helix-importer-ui/commit/4d0c4584c69963a46fdfdea29676fdf15dcb1a14))
+
 ## [1.51.14](https://github.com/adobe/helix-importer-ui/compare/v1.51.13...v1.51.14) (2024-05-22)
 
 
