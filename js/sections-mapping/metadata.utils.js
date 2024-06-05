@@ -1,9 +1,9 @@
-import alert from '../../shared/alert.js';
+import alert from '../shared/alert.js';
 import {
   getImporterSectionsMapping,
   saveImporterSectionsMapping,
-} from '../../sections-mapping/utils.ui.js';
-import { createElement } from '../../shared/utils.js';
+} from './utils.ui.js';
+import { createElement } from '../shared/utils.js';
 
 const METADATA_EDITOR = document.getElementById('metadata-editor');
 const METADATA_EDITOR_SECTIONS = document.getElementById('metadata-editor-rows');
