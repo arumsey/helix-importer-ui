@@ -427,6 +427,35 @@ const createImporter = () => {
 
 const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`);
 
+/**
+ * After an import or detect operation, return the UI to the waiting state.  Ensure all listeners
+ * are removed and the buttons are re-enabled.
+ * @param processNext: function to remove 'transformation-complete' listener from
+ * @param finishingImport: whether an import is finishing (or detect)
+ */
+const restoreWaitingUI = (processNext, finishingImport) => {
+  if (processNext) {
+    getContentFrame().removeEventListener('transformation-complete', processNext);
+  }
+
+  DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
+  DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
+  enableProcessButtons();
+
+  if (finishingImport) {
+    toggleLoadingButton(IMPORT_BUTTON);
+
+    if (IS_EXPRESS) {
+      // After the import, detect sections again (show boxes, mapping, etc.)
+      setTimeout(() => {
+        DETECT_BUTTON?.click();
+      }, 100);
+    }
+  } else {
+    toggleLoadingButton(DETECT_BUTTON);
+  }
+};
+
 const sleep = (ms) => new Promise(
   (resolve) => {
     setTimeout(resolve, ms);
@@ -809,10 +838,7 @@ const attachListeners = () => {
         FOLDERNAME_SPAN.classList.remove('hidden');
       } catch (e) {
         // Cancel import.
-        DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
-        DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
-        enableProcessButtons();
-        toggleLoadingButton(IMPORT_BUTTON);
+        restoreWaitingUI(null, true);
         alert.warning('Folder selection was cancelled or failed.');
         return;
       }
@@ -959,25 +985,14 @@ const attachListeners = () => {
           processNext();
         }
       } else {
-        const frame = getContentFrame();
-        frame.removeEventListener('transformation-complete', processNext);
-        DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
-        DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
-        enableProcessButtons();
-        toggleLoadingButton(IMPORT_BUTTON);
-        if (IS_EXPRESS) {
-          // After the import, detect sections again (show boxes, mapping, etc.)
-          setTimeout(() => {
-            DETECT_BUTTON?.click();
-          }, 100);
-        }
+        // All importing is complete - reset UI.
+        restoreWaitingUI(processNext, true);
       }
     };
     processNext();
   }));
 
   DETECT_BUTTON?.addEventListener('click', (async () => {
-    initImportStatus();
     DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
     DOWNLOAD_TRANSFORMATION_BUTTON?.classList.add('hidden');
     PREVIEW_CONTAINER?.classList.remove('hidden');
@@ -1126,11 +1141,8 @@ const attachListeners = () => {
           processNext();
         }
       } else {
-        const frame = getContentFrame();
-        frame.removeEventListener('transformation-complete', processNext);
-        // DOWNLOAD_IMPORT_REPORT_BUTTON.classList.remove('hidden');
-        enableProcessButtons();
-        toggleLoadingButton(DETECT_BUTTON);
+        // All detecting is complete - reset UI.
+        restoreWaitingUI(processNext, false);
       }
     };
     processNext();
