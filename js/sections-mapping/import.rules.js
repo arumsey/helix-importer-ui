@@ -22,12 +22,18 @@ const baseTransformRules = {
     {
       type: 'metadata',
       insertMode: 'append',
-      params: {
-        cells: {},
-      },
     },
   ],
 };
+
+function isEmpty(value) {
+  if (Array.isArray(value)) {
+    return value.length === 0;
+  } else if (typeof value === 'object' && value !== null) {
+    return Object.keys(value).length === 0;
+  }
+  return false;
+}
 
 /**
  * Build a CSS selector string from a mapping.
@@ -127,12 +133,16 @@ function buildTransformationRulesFromMapping(mapping) {
     const existingRules = transformRules.blocks.find((b) => b.type === type);
     const selectors = mappingList.map((m) => buildSelector(m, rootXpath)).filter((s) => s);
     const cells = buildBlockCellsFromMapping(mappingList);
-    return {
+    const rule = {
       ...existingRules,
       type,
       selectors,
       params: { cells },
     };
+    if (isEmpty(rule.params.cells)) {
+      delete rule.params;
+    }
+    return rule
   });
 
   // add missing default blocks
