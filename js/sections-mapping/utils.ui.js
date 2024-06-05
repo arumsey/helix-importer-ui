@@ -8,11 +8,10 @@ const defaultMappingsConfiguration = [
     { label: 'Root', attributes: { value: 'root' } },
     { label: 'Exclude', attributes: { value: 'exclude' } },
   ],
-  [{ label: 'Default Content', attributes: { value: 'defaultContent' } }],
   [
+    { label: 'Columns', attributes: { value: 'columns' } },
     { label: 'Hero', attributes: { value: 'hero' } },
     { label: 'Cards', attributes: { value: 'cards' } },
-    { label: 'Columns', attributes: { value: 'columns' } },
     { label: 'Carousel', attributes: { value: 'carousel' } },
   ],
   [{ label: 'Snapshot', attributes: { value: 'snapshot', disabled: true } }],
