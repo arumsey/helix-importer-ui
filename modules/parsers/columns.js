@@ -39,7 +39,7 @@ function getXPath(elm, document, withDetails = false) {
 function getNSiblingsDivs(el, document, n = null) {
   let cmpFn = n;
 
-  if (!Number.isNaN(n)) {
+  if (Number.isInteger(n)) {
     cmpFn = (c) => c === n;
   }
 
@@ -64,6 +64,11 @@ function getNSiblingsDivs(el, document, n = null) {
       break;
     }
   }
+  if (!selectedXpathPattern) {
+    if (cmpFn(el.children.length)) {
+      return [...el.children];
+    }
+  }
 
   return xpathGrouping[selectedXpathPattern] || null;
 }
@@ -78,7 +83,7 @@ export default function parse(el, { document }) {
   });
 
   el.querySelectorAll('div').forEach((d) => {
-    console.log(getXPath(d, document, true));
+    console.log(`XPATH: ${getXPath(d, document, true)}`);
     console.log(d.getBoundingClientRect());
     if (d.dataset.hlxImpRect) {
       console.log(d.dataset.hlxImpRect);
