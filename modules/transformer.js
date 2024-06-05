@@ -45,7 +45,7 @@ export default class Transformer {
 
     // phase 2: DOM removal - start
     WebImporter.DOMUtils.remove(main, removeIgnore);
-    WebImporter.DOMUtils.remove(document, removeStart);
+    WebImporter.DOMUtils.remove(main, removeStart);
 
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
@@ -66,20 +66,22 @@ export default class Transformer {
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }
-        // create the block
-        const block = WebImporter.Blocks.createBlock(document, {
-          name: WebImporter.Blocks.computeBlockName(type),
-          variants,
-          cells: items,
-        });
-        if (block) {
-          // add block to DOM
-          if (insertMode === 'append') {
-            main.append(block);
-          } else if (insertMode === 'prepend') {
-            main.prepend(block);
-          } else {
-            element.replaceWith(block);
+        if (items.length) {
+          // create the block
+          const block = WebImporter.Blocks.createBlock(document, {
+            name: WebImporter.Blocks.computeBlockName(type),
+            variants,
+            cells: items,
+          });
+          if (block) {
+            // add block to DOM
+            if (insertMode === 'append') {
+              main.append(block);
+            } else if (insertMode === 'prepend') {
+              main.prepend(block);
+            } else {
+              element.replaceWith(block);
+            }
           }
         }
       });
