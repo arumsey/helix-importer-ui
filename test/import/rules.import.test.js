@@ -17,7 +17,7 @@ import { JSDOM } from 'jsdom';
 import 'jsdom-global/register.js';
 import assert from 'assert';
 import { readFile } from 'fs/promises';
-import { buildTransformationRulesFromMapping, buildBlockCellsFromMapping } from '../../js/import/rules.import.js';
+import { buildTransformationRulesFromMapping, buildBlockCellsFromMapping } from '../../js/sections-mapping/rules.import.js';
 
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = dirname(import.meta);

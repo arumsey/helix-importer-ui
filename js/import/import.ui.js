@@ -10,7 +10,6 @@
  * governing permissions and limitations under the License.
  */
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
-import { initializeMetadata } from './util/metadata.js';
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
 import { asyncForEach, getElementByXpath, createElement } from '../shared/utils.js';
@@ -18,7 +17,8 @@ import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { defaultMappingsConfiguration, getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { buildTransformationRulesFromMapping } from './rules.import.js';
+import { initializeMetadata } from '../sections-mapping/metadata.utils.js';
+import { buildTransformationRulesFromMapping } from '../sections-mapping/import.rules.js';
 import TransformFactory from '../shared/transformfactory.js';
 
 const PARENT_SELECTOR = '.import';
