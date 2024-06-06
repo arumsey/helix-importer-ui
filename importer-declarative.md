@@ -69,7 +69,7 @@ By leveraging selector expressions it is possible to create complex transformati
 
 #### Block config expressions
 
-The `buildBlockConfig` function of the `Transformer` class can be used to create a block configuration object by mapping from an object of CSS selector expressions.
+The `buildBlockConfig` function of the `CellUtils` class can be used to create a block configuration object by mapping from an object of CSS selector expressions.
 
 An expression item could be a single name/value pair that maps directly. An item could be a simple expression where the value is obtained from a single CSS selector. 
 Finally, multiple expressions can be defined in an array to allow values to be conditionally applied based on the page structure.
