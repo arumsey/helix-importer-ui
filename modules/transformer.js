@@ -58,7 +58,7 @@ export default class Transformer {
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }
-        if (items.length) {
+        if (!WebImporter.CellUtils.isEmpty(items)) {
           // create the block
           const block = WebImporter.Blocks.createBlock(document, {
             name: WebImporter.Blocks.computeBlockName(type),
