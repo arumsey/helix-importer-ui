@@ -45,7 +45,7 @@ export default class Transformer {
 
     // phase 2: DOM removal - start
     WebImporter.DOMUtils.remove(main, removeIgnore);
-    WebImporter.DOMUtils.remove(document, removeStart);
+    WebImporter.DOMUtils.remove(main, removeStart);
 
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
