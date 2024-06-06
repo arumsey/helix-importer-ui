@@ -9,15 +9,6 @@ const IGNORE_ELEMENTS = [
   'iframe',
 ];
 
-function isValidCSSSelector(selector) {
-  try {
-    document.querySelector(selector);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
 export default class Transformer {
   /**
    * Transform a source document from a set of rules.
@@ -27,7 +18,6 @@ export default class Transformer {
    * @return Transformed root element
    */
   static transform(rules, source) {
-    console.log('Transformer Rules', rules);
     const { document } = source;
 
     const {
@@ -53,7 +43,9 @@ export default class Transformer {
         type, variants, selectors, parse, insertMode = 'replace', params = {},
       } = blockCfg;
       const parserFn = parse || parsers[type] || parsers.block;
-      const validSelectors = selectors ? selectors.filter(isValidCSSSelector) : [];
+      const validSelectors = selectors
+        ? selectors.filter(WebImporter.CellUtils.isValidCSSSelector)
+        : [];
       const elements = validSelectors.length
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
         : [main];
@@ -66,7 +58,7 @@ export default class Transformer {
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }
-        if (items.length) {
+        if (!WebImporter.CellUtils.isEmpty(items)) {
           // create the block
           const block = WebImporter.Blocks.createBlock(document, {
             name: WebImporter.Blocks.computeBlockName(type),
@@ -91,57 +83,5 @@ export default class Transformer {
     WebImporter.DOMUtils.remove(document, removeEnd);
 
     return main;
-  }
-
-  /**
-   * Build a name/value pair block configuration from a selector object.
-   *
-   * Selector Object:
-   * {
-   *   name: value_selector | [condition_selector, value_selector]
-   * }
-   *
-   * @param element Root element to query from
-   * @param params Object of selector conditions
-   */
-  static buildBlockConfig(element, params) {
-    const cfg = {};
-    Object.entries(params).forEach(([name, value]) => {
-      let selector = value;
-      if (Array.isArray(value)) {
-        // find first matching element
-        const [, conditionalSelector] = value
-          .find(([condition]) => element.querySelector(condition)) || [];
-        selector = conditionalSelector;
-      }
-      let cfgValue = selector;
-      if (selector && isValidCSSSelector(selector)) {
-        cfgValue = [
-          ...element.querySelectorAll(selector)]
-          .map((el) => el.textContent || el.content);
-        if (cfgValue.length <= 1) {
-          [cfgValue = selector] = cfgValue;
-        }
-      }
-      if (cfgValue !== undefined) {
-        cfg[name] = cfgValue;
-      }
-    });
-    return cfg;
-  }
-
-  /**
-   * Build a two-dimensional array of block cells from a selector object.
-   * @param element
-   * @param cells
-   */
-  static buildBlockCells(element, cells) {
-    return cells.map((row) => {
-      if (Array.isArray(row)) {
-        return row.map((col) => [...element.querySelectorAll(col)]);
-      }
-      return [...element.querySelectorAll(row)];
-    })
-      .filter((row) => row.some((col) => col.length > 0));
   }
 }

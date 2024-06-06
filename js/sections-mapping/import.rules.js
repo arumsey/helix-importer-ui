@@ -26,15 +26,6 @@ const baseTransformRules = {
   ],
 };
 
-function isEmpty(value) {
-  if (Array.isArray(value)) {
-    return value.length === 0;
-  } else if (typeof value === 'object' && value !== null) {
-    return Object.keys(value).length === 0;
-  }
-  return false;
-}
-
 /**
  * Build a CSS selector string from a mapping.
  * The most useful selector string will be used where a selector based off
@@ -139,7 +130,7 @@ function buildTransformationRulesFromMapping(mapping) {
       selectors,
       params: { cells },
     };
-    if (isEmpty(rule.params.cells)) {
+    if (WebImporter.CellUtils.isEmpty(rule.params.cells)) {
       delete rule.params;
     }
     return rule
