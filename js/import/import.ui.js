@@ -10,18 +10,29 @@
  * governing permissions and limitations under the License.
  */
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
+import { initializeMetadata } from './customizations/metadata.js';
+import { initializeVariant } from './customizations/variant.js';
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
-import { asyncForEach, getElementByXpath, createElement } from '../shared/utils.js';
+import {
+  asyncForEach,
+  getElementByXpath,
+  createElement,
+  getContentFrame,
+  PARENT_SELECTOR,
+} from '../shared/utils.js';
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
-import { defaultMappingsConfiguration, getImporterSectionsMapping, saveImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
-import { initializeMetadata } from '../sections-mapping/metadata.utils.js';
+import {
+  defaultMappingsConfiguration,
+  getImporterSectionsMapping,
+  isDefaultMapping,
+  saveImporterSectionsMapping,
+} from '../sections-mapping/utils.ui.js';
 import { buildTransformationRulesFromMapping } from '../sections-mapping/import.rules.js';
 import TransformFactory from '../shared/transformfactory.js';
 
-const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
 
 const PREVIEW_CONTAINER = document.querySelector(`${PARENT_SELECTOR} .page-preview`);
@@ -38,7 +49,7 @@ const MD_SOURCE_TEXTAREA = document.getElementById('import-markdown-source');
 const MD_PREVIEW_PANEL = document.getElementById('import-markdown-preview');
 const TRANSFORMATION_TEXTAREA = document.getElementById('import-transform-source');
 
-const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs`);
+const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs#mapping-editor-tabs`);
 
 const DOWNLOAD_IMPORT_REPORT_BUTTON = document.getElementById('import-downloadImportReport');
 
@@ -425,8 +436,6 @@ const createImporter = () => {
   });
 };
 
-const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`);
-
 /**
  * After an import or detect operation, return the UI to the waiting state.  Ensure all listeners
  * are removed and the buttons are re-enabled.
@@ -453,6 +462,13 @@ const restoreWaitingUI = (processNext, finishingImport) => {
     }
   } else {
     toggleLoadingButton(DETECT_BUTTON);
+
+    // Customization's inner tabs do not seem to get auto-selected.
+    const tabs = document.querySelector('sp-tabs#customization-editor-tabs');
+    const value = tabs?.getAttribute('selected');
+    if (!value) {
+      tabs.setAttribute('selected', 'metadata-editor-view');
+    }
   }
 };
 
@@ -524,7 +540,7 @@ const detectSections = async (src, frame) => {
       const rowEl = e.target.closest('.row');
       if (rowEl) {
         let mappingData = getImporterSectionsMapping(originalURL);
-        const id = rowEl.dataset.sectionId ?? rowEl.dataset.metadataId;
+        const id = rowEl.dataset.sectionId ?? rowEl.dataset.customId;
         // eslint-disable-next-line no-param-reassign
         mappingData = mappingData.filter((m) => m.id !== id);
 
@@ -727,8 +743,8 @@ const detectSections = async (src, frame) => {
 
   const mappingData = getImporterSectionsMapping(originalURL);
 
-  // Set up the non-metadata (customized) blocks.
-  mappingData.filter((md) => md.mapping !== 'metadata').forEach((m) => {
+  // Set up the non-customized block mappings.
+  mappingData.filter((md) => isDefaultMapping(md)).forEach((m) => {
     const row = getMappingRow(m, MAPPING_EDITOR_SECTIONS.children.length);
     MAPPING_EDITOR_SECTIONS.appendChild(row);
   });
@@ -757,6 +773,7 @@ const detectSections = async (src, frame) => {
   });
 
   initializeMetadata(originalURL, getRowDeleteButton);
+  initializeVariant(originalURL, getRowDeleteButton);
 };
 
 const attachListeners = () => {

@@ -52,6 +52,13 @@ export default class Transformer {
       const {
         type, variants, selectors, parse, insertMode = 'replace', params = {},
       } = blockCfg;
+
+      // Use custom variants, if provided.
+      const customVariants = rules.variants
+        .filter((v) => blockCfg.selectors.includes(v.condition))
+        .map((cv) => cv.value);
+      const newVariants = variants ? [...customVariants, ...variants] : customVariants;
+
       const parserFn = parse || parsers[type] || parsers.block;
       const validSelectors = selectors ? selectors.filter(isValidCSSSelector) : [];
       const elements = validSelectors.length
@@ -66,20 +73,23 @@ export default class Transformer {
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }
-        // create the block
-        const block = WebImporter.Blocks.createBlock(document, {
-          name: WebImporter.Blocks.computeBlockName(type),
-          variants,
-          cells: items,
-        });
-        if (block) {
-          // add block to DOM
-          if (insertMode === 'append') {
-            main.append(block);
-          } else if (insertMode === 'prepend') {
-            main.prepend(block);
-          } else {
-            element.replaceWith(block);
+        // TODO: `type === 'metadata' to be replace with global "isEmpty" function.
+        if (type === 'metadata' || items.length) {
+          // create the block
+          const block = WebImporter.Blocks.createBlock(document, {
+            name: WebImporter.Blocks.computeBlockName(type),
+            variants: newVariants,
+            cells: items,
+          });
+          if (block) {
+            // add block to DOM
+            if (insertMode === 'append') {
+              main.append(block);
+            } else if (insertMode === 'prepend') {
+              main.prepend(block);
+            } else {
+              element.replaceWith(block);
+            }
           }
         }
       });

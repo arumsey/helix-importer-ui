@@ -27,6 +27,7 @@ const baseTransformRules = {
       },
     },
   ],
+  variants: [],
 };
 
 /**
@@ -141,6 +142,12 @@ function buildTransformationRulesFromMapping(mapping) {
       transformRules.blocks = [{ ...rule }, ...transformRules.blocks];
     }
   });
+
+  // add variants
+  const variants = mapping.filter((m) => (m.mapping === 'variant' && m.value && m.condition));
+  if (variants && variants.length > 0) {
+    transformRules.variants = variants;
+  }
 
   return transformRules;
 }

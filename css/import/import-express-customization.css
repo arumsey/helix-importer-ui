@@ -1,6 +1,6 @@
 @import url("../libs/vendors/codemirror/base16-dark.css");
 
-.import-express #metadata-editor {
+.import-express .customization-editor {
   & h1 {
     margin: 1rem 1rem 1rem 0;
   }
@@ -16,15 +16,20 @@
     min-width: 32px;
   }
 
-  & h2:not(#metadata-click-detection-prompt),
+  & h2:not(.customization-click-detection-prompt),
   & sp-textfield {
     width: 30%;
     min-width: 240px;
   }
 
-  & #metadata-editor-add {
+  & #metadata-editor-add,
+  & #variant-editor-add {
     margin-top: 1rem;
     align-self: end;
   }
 }
 
+.import-download-files {
+  bottom: 1.5rem;
+  position: absolute;
+}
