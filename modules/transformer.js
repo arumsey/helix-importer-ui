@@ -6,6 +6,7 @@ const IGNORE_ELEMENTS = [
   'style',
   'source',
   'script',
+  'noscript',
   'iframe',
 ];
 
@@ -34,7 +35,6 @@ export default class Transformer {
     const main = document.querySelector(root) || document.body;
 
     // phase 2: DOM removal - start
-    WebImporter.DOMUtils.remove(main, removeIgnore);
     WebImporter.DOMUtils.remove(main, removeStart);
 
     // phase 3: block creation
@@ -80,7 +80,8 @@ export default class Transformer {
     });
 
     // phase 4: DOM removal - end
-    WebImporter.DOMUtils.remove(document, removeEnd);
+    WebImporter.DOMUtils.remove(main, removeEnd);
+    WebImporter.DOMUtils.remove(main, removeIgnore);
 
     return main;
   }

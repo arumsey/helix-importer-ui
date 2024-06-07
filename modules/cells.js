@@ -14,17 +14,42 @@ export default class CellUtils {
     const cfg = {};
     Object.entries(params).forEach(([name, value]) => {
       let selector = value;
+      let replacements = [];
       if (Array.isArray(value)) {
         // find first matching element
-        const [, conditionalSelector] = value
+        const [, conditionalSelector, ...conditionalReplacements] = value
           .find(([condition]) => element.querySelector(condition)) || [];
         selector = conditionalSelector;
+        replacements = conditionalReplacements;
       }
       let cfgValue = selector;
+      const useSiblingText = selector?.endsWith('+ ::text') || false;
+      if (useSiblingText) {
+        selector = selector.replace('+ ::text', '').trim();
+      }
       if (selector && CellUtils.isValidCSSSelector(selector)) {
+        const [, attribute] = selector.match(/\[(.*?)\]$/) || [];
+        if (attribute) {
+          selector = selector.replace(/\[(.*?)\]$/, '');
+        }
         cfgValue = [
           ...element.querySelectorAll(selector)]
-          .map((el) => el.textContent || el.content);
+          .map((el) => {
+            let text = '';
+            if (attribute) {
+              text = el.getAttribute(attribute);
+            } else {
+              text = useSiblingText
+                ? el.nextSibling.textContent
+                : el.textContent || el.content;
+            }
+            // perform replacements
+            const [search, replace = ''] = replacements;
+            if (search) {
+              return text.replace(new RegExp(search), replace).trim();
+            }
+            return text ? text.trim() : text;
+          });
         if (cfgValue.length <= 1) {
           [cfgValue = selector] = cfgValue;
         }

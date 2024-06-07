@@ -38,7 +38,7 @@ function buildSelector(mapping, basePath) {
   // TODO: this logic may be able to be greatly simplified
   // when mapping object provides a fully curated selector string
   if (mapping.selector) {
-    return mapping.selector;
+    return mapping.selector.replace(/^body /, '');
   }
   if (mapping.domId) {
     return `#${mapping.domId}`;
