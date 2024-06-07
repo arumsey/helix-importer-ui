@@ -42,13 +42,6 @@ export default class Transformer {
       const {
         type, variants, selectors, parse, insertMode = 'replace', params = {},
       } = blockCfg;
-
-      // Use custom variants, if provided.
-      const customVariants = rules.variants
-        .filter((v) => blockCfg.selectors.includes(v.condition))
-        .map((cv) => cv.value);
-      const newVariants = variants ? [...customVariants, ...variants] : customVariants;
-
       const parserFn = parse || parsers[type] || parsers.block;
       const validSelectors = selectors
         ? selectors.filter(WebImporter.CellUtils.isValidCSSSelector)
@@ -69,7 +62,7 @@ export default class Transformer {
           // create the block
           const block = WebImporter.Blocks.createBlock(document, {
             name: WebImporter.Blocks.computeBlockName(type),
-            variants: newVariants,
+            variants,
             cells: items,
           });
           if (block) {

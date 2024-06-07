@@ -214,8 +214,13 @@
     align-items: top;
     cursor: pointer;
 
-    & #sec-dom-selector {
+    & #sec-dom-selector,
+    & #sec-dom-variants {
       min-width: 240px;
+    }
+
+    & #sec-dom-mapping {
+      min-width: 192px;
     }
 
     & #sec-color {

@@ -11,7 +11,6 @@
  */
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
 import { initializeMetadata } from './customizations/metadata.js';
-import { initializeVariant } from './customizations/variant.js';
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
 import {
@@ -556,18 +555,20 @@ const detectSections = async (src, frame) => {
     return buttonContainer;
   };
 
-  function saveMappingChange({ newMapping, newSelector }) {
+  function saveMappingChange({ newMapping, newSelector, newVariants }) {
     const mappingData = getImporterSectionsMapping(originalURL);
     // update mapping data
     const mItem = mappingData.find((m) => m.id === selectedSection.id);
     if (mItem) {
       mItem.mapping = newMapping ?? mItem.mapping;
       mItem.selector = newSelector ?? mItem.selector;
+      mItem.variants = newVariants ?? mItem.variants;
     } else if (selectedSection.id !== null) {
       mappingData.push({
         id: selectedSection.id,
         selector: newSelector ?? selectedSection.selector,
         mapping: newMapping ?? selectedSection.mapping,
+        variants: newVariants ?? selectedSection.variants,
       });
     } else {
       // eslint-disable-next-line no-console
@@ -578,10 +579,7 @@ const detectSections = async (src, frame) => {
   }
 
   function getSelectorTextField(id, placeHolder, value, changeType, visible, helpText) {
-    const textField = document.createElement('sp-textfield');
-    textField.setAttribute('id', id);
-    textField.setAttribute('placeHolder', placeHolder);
-
+    const textField = createElement('sp-textfield', { id, placeHolder });
     if (!visible) {
       textField.classList.add('hidden');
     }
@@ -591,14 +589,16 @@ const detectSections = async (src, frame) => {
         args[changeType] = e.target.value;
         saveMappingChange(args);
 
-        // Manage warnings when the selector matches more than 1 element.
-        const allSelectors = frame.contentDocument.querySelectorAll(e.target.value);
-        if (allSelectors.length !== 1) {
-          alert.warning(`This selector produces ${allSelectors.length} results.`);
-        } else {
-          const help = e.target.parentElement.querySelector('sp-help-text');
-          if (help) {
-            help.remove();
+        if (changeType === 'newSelector') {
+          // Manage warnings when the selector matches more than 1 element.
+          const allSelectors = frame.contentDocument.querySelectorAll(e.target.value);
+          if (allSelectors.length !== 1) {
+            alert.warning(`This selector produces ${allSelectors.length} results.`);
+          } else {
+            const help = e.target.parentElement.querySelector('sp-help-text');
+            if (help) {
+              help.remove();
+            }
           }
         }
       }
@@ -654,6 +654,7 @@ const detectSections = async (src, frame) => {
     row.dataset.xpath = section.xpath;
     row.classList.add('row');
     const selector = !section.selector ? '' : section.selector;
+    const variants = !section.variants ? '' : section.variants;
 
     const color = createElement('div', { id: 'sec-color', class: 'sec-color', style: `background-color: ${section.color || 'white'}` });
     const moveUpBtnContainer = document.createElement('div');
@@ -713,10 +714,18 @@ const detectSections = async (src, frame) => {
     selectorDiv.appendChild(domSelector);
     selectorDiv.appendChild(createElement('sp-tooltip', { 'self-managed': true }, title));
 
+    const variantsField = getSelectorTextField(
+      'sec-dom-variants',
+      'Add optional block variants',
+      variants,
+      'newVariants',
+      true,
+    );
+
     const mappingPicker = getBlockPicker(section.mapping);
     const deleteBtn = getRowDeleteButton(originalURL);
 
-    row.append(color, moveUpBtnContainer, selectorDiv, mappingPicker, deleteBtn);
+    row.append(color, moveUpBtnContainer, selectorDiv, mappingPicker, variantsField, deleteBtn);
 
     row.addEventListener('mouseenter', (e) => {
       const target = e.target.nodeName === 'DIV' ? e.target : e.target.closest('.row');
@@ -773,7 +782,7 @@ const detectSections = async (src, frame) => {
   });
 
   initializeMetadata(originalURL, getRowDeleteButton);
-  initializeVariant(originalURL, getRowDeleteButton);
+  // initializeVariant(originalURL, getRowDeleteButton);
 };
 
 const attachListeners = () => {

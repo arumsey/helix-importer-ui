@@ -111,7 +111,8 @@
                                         <div class="row header hidden">
                                             <h2 id="sec-color">&nbsp;</h2>
                                             <h2 id="sec-dom-selector">Selector</h2>
-                                            <h2>Mapping</h2>
+                                            <h2 id="sec-dom-mapping">Mapping</h2>
+                                            <h2 id="sec-dom-variants">Variants</h2>
                                             <h2>&nbsp;</h2>
                                         </div>
                                         <div id="mapping-editor-sections">
@@ -122,7 +123,7 @@
                             <sp-tab-panel value="block-customization">
                                 <sp-tabs selected="metadata-editor-view" id="customization-editor-tabs">
                                     <sp-tab label="Metadata" value="metadata-editor-view"></sp-tab>
-                                    <sp-tab label="Variants" value="variant-editor-view"></sp-tab>
+                                    <!--<sp-tab label="Variants" value="variant-editor-view"></sp-tab>-->
                                     <sp-tab-panel value="metadata-editor-view">
                                         <sp-theme color="light" scale="medium">
                                             <div id="metadata-editor" class="customization-editor">
@@ -147,7 +148,8 @@
                                                 </sp-button>
                                             </div>
                                         </sp-theme>
-                                    </sp-tab-panel>
+                                    </sp-tab-panel><!--
+                                    Backup the Variant's view (in case it or something like it comes back)
                                     <sp-tab-panel value="variant-editor-view">
                                         <sp-theme color="light" scale="medium">
                                             <div id="variant-editor" class="customization-editor">
@@ -171,7 +173,7 @@
                                                 </sp-button>
                                             </div>
                                         </sp-theme>
-                                    </sp-tab-panel>
+                                    </sp-tab-panel>-->
                                 </sp-tabs>
                             </sp-tab-panel>
                             <sp-tab-panel value="import-preview">
