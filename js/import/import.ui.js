@@ -48,7 +48,7 @@ const MD_SOURCE_TEXTAREA = document.getElementById('import-markdown-source');
 const MD_PREVIEW_PANEL = document.getElementById('import-markdown-preview');
 const TRANSFORMATION_TEXTAREA = document.getElementById('import-transform-source');
 
-const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs#mapping-editor-tabs`);
+const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs`);
 
 const DOWNLOAD_IMPORT_REPORT_BUTTON = document.getElementById('import-downloadImportReport');
 
@@ -111,7 +111,11 @@ const setupUI = () => {
     ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
   }
 
-  SPTABS.selected = 'mapping-editor';
+  if (IS_EXPRESS) {
+    SPTABS.selected = 'mapping-editor';
+  } else {
+    SPTABS.selected = 'import-preview';
+  }
 };
 
 const loadResult = ({ md, html: outputHTML }, originalURL) => {

@@ -1,3 +1,5 @@
+import blockParser from './block.js';
+
 function getXPath(elm, document, withDetails = false) {
   const allNodes = document.getElementsByTagName('*');
   const segments = [];
@@ -73,7 +75,7 @@ function getNSiblingsDivs(el, document, n = null) {
   return xpathGrouping[selectedXpathPattern] || null;
 }
 
-export default function parse(el, { document }) {
+export default function parse(el, { document, params: { cells } }) {
   // cleanup
   el.querySelectorAll('script, style').forEach((e) => e.remove());
   el.querySelectorAll('div').forEach((e) => {
@@ -82,6 +84,11 @@ export default function parse(el, { document }) {
     }
   });
 
+  if (cells) {
+    return blockParser(el, { params: { cells } });
+  }
+
+  // begin automatic detection
   el.querySelectorAll('div').forEach((d) => {
     console.log(`XPATH: ${getXPath(d, document, true)}`);
     console.log(d.getBoundingClientRect());

@@ -1,3 +1,15 @@
+const PSEUDO_TEXT_SELECTOR = '::text';
+
+function isHTMLElement(el) {
+  return (
+    typeof HTMLElement === 'object' ? el instanceof HTMLElement // DOM2
+      : el
+        && typeof el === 'object'
+        && el.nodeType === 1
+        && typeof el.nodeName === 'string'
+  );
+}
+
 export default class CellUtils {
   /**
    * Build a name/value pair block configuration from a selector object.
@@ -8,25 +20,23 @@ export default class CellUtils {
    * }
    *
    * @param element Root element to query from
-   * @param params Object of selector conditions
+   * @param items Object of selector conditions
    */
-  static buildBlockConfig(element, params) {
+  static buildBlockConfig(element, items) {
     const cfg = {};
-    Object.entries(params).forEach(([name, value]) => {
+    Object.entries(items).forEach(([name, value]) => {
       let selector = value;
-      let replacements = [];
+      let params = {};
       if (Array.isArray(value)) {
         // find first matching element
-        const [, conditionalSelector, ...conditionalReplacements] = value
+        const [, conditionalSelector, conditionalParams] = value
           .find(([condition]) => element.querySelector(condition)) || [];
         selector = conditionalSelector;
-        replacements = conditionalReplacements;
+        params = conditionalParams || {};
       }
       let cfgValue = selector;
-      const useSiblingText = selector?.endsWith('+ ::text') || false;
-      if (useSiblingText) {
-        selector = selector.replace('+ ::text', '').trim();
-      }
+      const { selector: valueSelector, useSiblingText } = CellUtils.getValueSelector(selector);
+      selector = valueSelector;
       if (selector && CellUtils.isValidCSSSelector(selector)) {
         const [, attribute] = selector.match(/\[(.*?)\]$/) || [];
         if (attribute) {
@@ -43,8 +53,9 @@ export default class CellUtils {
                 ? el.nextSibling.textContent
                 : el.textContent || el.content;
             }
+            // additional processing based on conditional params that were provided
+            const { replace: [search, replace = ''] = [] } = params;
             // perform replacements
-            const [search, replace = ''] = replacements;
             if (search) {
               return text.replace(new RegExp(search), replace).trim();
             }
@@ -68,12 +79,15 @@ export default class CellUtils {
    */
   static buildBlockCells(element, cells) {
     return cells.map((row) => {
+      if (isHTMLElement(row)) {
+        return [row];
+      }
       if (Array.isArray(row)) {
         return row.map((col) => [...element.querySelectorAll(col)]);
       }
       return [...element.querySelectorAll(row)];
     })
-      .filter((row) => row.some((col) => col.length > 0));
+      .filter((row) => row.some((col) => (Array.isArray(col) ? col.length > 0 : col)));
   }
 
   /**
@@ -104,5 +118,31 @@ export default class CellUtils {
     } catch (e) {
       return false;
     }
+  }
+
+  static isTextSelector(selector = '') {
+    return selector.includes(PSEUDO_TEXT_SELECTOR) || false;
+  }
+
+  static getValueSelector(selector = '') {
+    const useText = selector.endsWith(PSEUDO_TEXT_SELECTOR) || false;
+    let cleanSelector = selector.replace(PSEUDO_TEXT_SELECTOR, '*');
+    const useSiblingText = useText && cleanSelector.endsWith('+ *');
+    cleanSelector = cleanSelector.replace(/\+ \*$/, '');
+    return {
+      selector: cleanSelector,
+      useSiblingText,
+    };
+  }
+
+  static getSearchSelector(selector = '') {
+    const [, searchText] = selector.match(new RegExp(`${PSEUDO_TEXT_SELECTOR}\\((.*?)\\)`));
+    const cleanSelector = selector
+      .replace(new RegExp(`${PSEUDO_TEXT_SELECTOR}\\((.*)\\)`), '')
+      .trim();
+    return {
+      selector: cleanSelector,
+      search: searchText,
+    };
   }
 }
