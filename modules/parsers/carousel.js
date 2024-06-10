@@ -33,6 +33,9 @@ function getCommonAncestor(elements) {
 export default function parse(el) {
   // a carousel will consist of one row for every image found
   const images = el.querySelectorAll('img');
+  if (images.length === 1 && images[0].children.length === 0) {
+    return [[images[0]]];
+  }
   const commonParent = getCommonAncestor(images);
   return [...images].map((img) => {
     const slide = [...commonParent.children].find((child) => child.contains(img));

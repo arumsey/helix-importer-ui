@@ -1,3 +1,5 @@
+const PARENT_SELECTOR = '.import';
+
 async function asyncForEach(array, callback) {
   for (let index = 0; index < array.length; index += 1) {
     // eslint-disable-next-line no-await-in-loop
@@ -41,8 +43,12 @@ function createElement(nodeName, props, innerText) {
   return newElement;
 }
 
+const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`);
+
 export {
   asyncForEach,
-  getElementByXpath,
   createElement,
+  getElementByXpath,
+  getContentFrame,
+  PARENT_SELECTOR,
 };

@@ -98,7 +98,7 @@
                         </div>
                     </div>
                     <div class="section-col">
-                        <sp-tabs selected="mapping-editor">
+                        <sp-tabs selected="mapping-editor" id="mapping-editor-tabs">
                             <sp-tab label="Mapping" value="mapping-editor"></sp-tab>
                             <sp-tab label="Customization" value="block-customization"></sp-tab>
                             <sp-tab label="Preview" value="import-preview"></sp-tab>
@@ -111,7 +111,8 @@
                                         <div class="row header hidden">
                                             <h2 id="sec-color">&nbsp;</h2>
                                             <h2 id="sec-dom-selector">Selector</h2>
-                                            <h2>Mapping</h2>
+                                            <h2 id="sec-dom-mapping">Mapping</h2>
+                                            <h2 id="sec-dom-variants">Variants</h2>
                                             <h2>&nbsp;</h2>
                                         </div>
                                         <div id="mapping-editor-sections">
@@ -120,29 +121,34 @@
                                 </sp-theme>
                             </sp-tab-panel>
                             <sp-tab-panel value="block-customization">
-                                <sp-theme color="light" scale="medium">
-                                    <div id="metadata-editor">
-                                        <h2 id="metadata-click-detection-prompt">Run section detection to activate customizations.</h2>
-                                        <div class="heading hidden">
-                                            <h1>Metadata Mappings</h1>
-                                            <p>Add metadata block name/value pairs and the selector that the import should match to trigger their addition to the current import.</p>
-                                        </div>
-                                        <div id="metadata-editor-rows">
-                                            <div class="row header hidden">
-                                                <h2>Name</h2>
-                                                <h2>Value</h2>
-                                                <h2>Condition</h2>
-                                                <div class="icon-aligner"></div>
+                                <sp-tabs selected="metadata-editor-view" id="customization-editor-tabs">
+                                    <sp-tab label="Metadata" value="metadata-editor-view"></sp-tab>
+                                    <sp-tab-panel value="metadata-editor-view">
+                                        <sp-theme color="light" scale="medium">
+                                            <div id="metadata-editor" class="customization-editor">
+                                                <h2 class="customization-click-detection-prompt">Run section detection to activate metadata customizations.</h2>
+                                                <div class="heading hidden">
+                                                    <h1>Metadata Mappings</h1>
+                                                    <p>Add metadata block name/value pairs and the selector that the import should match to trigger their addition to the current import.</p>
+                                                </div>
+                                                <div id="metadata-editor-rows">
+                                                    <div class="row header hidden">
+                                                        <h2>Name</h2>
+                                                        <h2>Value</h2>
+                                                        <h2>Condition</h2>
+                                                        <div class="icon-aligner"></div>
+                                                    </div>
+                                                </div>
+                                                <sp-button id="metadata-editor-add" class="hidden" variant="accent" icon-only>
+                                                    <sp-icon-add-circle slot="icon"></sp-icon-add-circle>
+                                                    <sp-tooltip self-managed>
+                                                        Add a metadata row
+                                                    </sp-tooltip>
+                                                </sp-button>
                                             </div>
-                                        </div>
-                                        <sp-button id="metadata-editor-add" class="hidden" variant="accent" icon-only>
-                                            <sp-icon-add-circle slot="icon"></sp-icon-add-circle>
-                                            <sp-tooltip self-managed>
-                                                Add a metadata row
-                                            </sp-tooltip>
-                                        </sp-button>
-                                    </div>
-                                </sp-theme>
+                                        </sp-theme>
+                                    </sp-tab-panel>
+                                </sp-tabs>
                             </sp-tab-panel>
                             <sp-tab-panel value="import-preview">
                                 <sp-theme color="light" scale="medium">
@@ -157,7 +163,7 @@
                                 </div>
                             </sp-tab-panel>
                         </sp-tabs>
-                        <sp-button-group>
+                        <sp-button-group class="import-download-files">
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
                             <sp-button id="import-downloadTransformation">Download rules</sp-button>
                         </sp-button-group>
