@@ -20,6 +20,7 @@ import { defaultMappingsConfiguration, getImporterSectionsMapping, saveImporterS
 import { initializeMetadata } from '../sections-mapping/metadata.utils.js';
 import { buildTransformationRulesFromMapping } from '../sections-mapping/import.rules.js';
 import TransformFactory from '../shared/transformfactory.js';
+import { initializeVariant } from './customizations/variant.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -775,6 +776,8 @@ const attachListeners = () => {
       status: `Invalid: ${res?.status || 'unknown status'}`,
     });
     updateImporterUI([{ status: 'error' }], url);
+
+    initializeVariant();
   }
 
   config.importer.addListener(async ({ results }) => {
