@@ -782,7 +782,6 @@ const detectSections = async (src, frame) => {
   });
 
   initializeMetadata(originalURL, getRowDeleteButton);
-  // initializeVariant(originalURL, getRowDeleteButton);
 };
 
 const attachListeners = () => {

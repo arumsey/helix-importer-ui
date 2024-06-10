@@ -120,7 +120,7 @@ function buildTransformationRulesFromMapping(mapping) {
       return blockMap;
     }, {});
 
-  baseTransformRules.blocks = Object.entries(blockMapping).map(([type, mappingList]) => {
+  transformRules.blocks = Object.entries(blockMapping).map(([type, mappingList]) => {
     // Divide this type by variants.
     const mappingsByVariants = {};
     mappingList.forEach(function (mappingByType) {
