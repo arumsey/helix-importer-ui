@@ -121,20 +121,35 @@ function buildTransformationRulesFromMapping(mapping) {
     }, {});
 
   transformRules.blocks = Object.entries(blockMapping).map(([type, mappingList]) => {
-    const existingRules = transformRules.blocks.find((b) => b.type === type);
-    const selectors = mappingList.map((m) => buildSelector(m, rootXpath)).filter((s) => s);
-    const cells = buildBlockCellsFromMapping(mappingList);
-    const rule = {
-      ...existingRules,
-      type,
-      selectors,
-      params: { cells },
-    };
-    if (WebImporter.CellUtils.isEmpty(rule.params.cells)) {
-      delete rule.params;
-    }
-    return rule
-  });
+    // Divide this type by variants.
+    const mappingsByVariants = {};
+    mappingList.forEach(function (mappingByType) {
+      const variant = mappingByType.variants ?? 'unset';
+      mappingsByVariants[variant] = mappingsByVariants[variant] ?? [];
+      mappingsByVariants[variant].push(mappingByType);
+    });
+
+    return Object.entries(mappingsByVariants).map(([variant, mappingsByVariant]) => {
+      const existingRules = transformRules.blocks.find((b) =>
+        b.type === type && (b.variants === variant || (variant === 'unset' && !b.variants)));
+      const selectors = mappingsByVariant.map((m) => buildSelector(m, rootXpath))
+        .filter((s) => s);
+      const cells = buildBlockCellsFromMapping(mappingsByVariant);
+      const rule = {
+        ...existingRules,
+        type,
+        selectors,
+        variants: variant === 'unset' ? undefined : variant.split(' '),
+        params: { cells },
+      };
+      if (WebImporter.CellUtils.isEmpty(rule.params.cells)) {
+        delete rule.params;
+      }
+      return rule;
+    })
+  })
+    // Flatten variant arrays.
+    .flatMap((r) => r);
 
   // add missing default blocks
   baseTransformRules.blocks.forEach((rule) => {
