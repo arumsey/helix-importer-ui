@@ -69,9 +69,9 @@ export default class Transformer {
       // process every element for this block
       elements.forEach((element) => {
         // add params to source
-        source.params = { ...source.params, ...params };
+        const mergedParams = { ...source.params, ...params };
         // parse the element into block items
-        let items = parserFn.call(this, element, source);
+        let items = parserFn.call(this, element, { ...source, params: mergedParams });
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }

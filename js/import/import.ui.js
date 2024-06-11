@@ -700,9 +700,14 @@ const detectSections = async (src, frame) => {
 
     let helpText;
     if (selector?.length > 0) {
-      const allSelectors = frame.contentDocument.querySelectorAll(selector);
-      if (allSelectors.length !== 1) {
-        helpText = `This selector produces ${allSelectors.length} results.`;
+      try {
+        const allSelectors = frame.contentDocument.querySelectorAll(selector);
+        if (allSelectors.length !== 1) {
+          helpText = `This selector produces ${allSelectors.length} results.`;
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Error checking selector', e);
       }
     }
     const domSelector = getSelectorTextField(
