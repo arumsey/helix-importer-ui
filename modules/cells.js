@@ -1,4 +1,7 @@
+import DOMPurify from 'dompurify';
+
 const PSEUDO_TEXT_SELECTOR = '::text';
+const TEMPLATE_REGEX = /\{\{(.+?)}}/g;
 
 function isHTMLElement(el) {
   return (
@@ -8,6 +11,48 @@ function isHTMLElement(el) {
         && el.nodeType === 1
         && typeof el.nodeName === 'string'
   );
+}
+
+function isValidCSSSelector(selector) {
+  try {
+    document.querySelector(selector);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Evaluate a cell value based on a selector or template string.
+ * If the cell is a selector, query the element for the value.
+ * If the cell is a template string, replace the templates with the
+ * selector value and create a document fragment..
+ *
+ * @param element Block element
+ * @param cell Selector or template string
+ * @return {HTMLElement[]}
+ */
+function evaluateCell(element, cell) {
+  let cellList = cell;
+  if (!Array.isArray(cellList)) {
+    cellList = [cellList];
+  }
+  return cellList.map((c) => {
+    if (isValidCSSSelector(c)) {
+      return [...element.querySelectorAll(c)];
+    }
+    // convert template string to HTML
+    let html = c.replace(TEMPLATE_REGEX, (match, expression) => {
+      const value = expression.trim();
+      if (isValidCSSSelector(value)) {
+        return element.querySelector(value)?.innerHTML || '';
+      }
+      return value;
+    });
+    // clean up HTML and return a document fragment
+    html = DOMPurify.sanitize(html);
+    return element.ownerDocument.createRange().createContextualFragment(html);
+  });
 }
 
 export default class CellUtils {
@@ -73,7 +118,15 @@ export default class CellUtils {
   }
 
   /**
-   * Build a two-dimensional array of block cells from a selector object.
+   * Build a two-dimensional array of block cells from a selector array.
+   * Each column in the selector array can be a CSS selector or a template string.
+   * A template string allows for additional HTML to be added along with selector references.
+   *
+   * Selector Array:
+   * [
+   *  [colSelector | colTemplate, ...],
+   * ]
+   *
    * @param element
    * @param cells
    */
@@ -83,9 +136,9 @@ export default class CellUtils {
         return [row];
       }
       if (Array.isArray(row)) {
-        return row.map((col) => [...element.querySelectorAll(col)]);
+        return row.map((col) => evaluateCell(element, col));
       }
-      return [...element.querySelectorAll(row)];
+      return evaluateCell(element, row);
     })
       .filter((row) => row.some((col) => (Array.isArray(col) ? col.length > 0 : col)));
   }
@@ -112,12 +165,7 @@ export default class CellUtils {
    * @return {boolean}
    */
   static isValidCSSSelector(selector) {
-    try {
-      document.querySelector(selector);
-      return true;
-    } catch (e) {
-      return false;
-    }
+    return isValidCSSSelector(selector);
   }
 
   static isTextSelector(selector = '') {
