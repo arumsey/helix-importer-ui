@@ -8,12 +8,10 @@ const ADD_METADATA_BUTTON = document.getElementById('metadata-editor-add');
  * After the mappings are read in, and the detection has been run, set up the metadata
  * mappings in the customization tab.
  * @param importURL
- * @param getRowDeleteButton
  */
-const initializeMetadata = (importURL, getRowDeleteButton) => {
+const initializeMetadata = (importURL) => {
   initializeView(
     importURL,
-    getRowDeleteButton,
     'metadata',
     METADATA_EDITOR,
     METADATA_EDITOR_SECTIONS,

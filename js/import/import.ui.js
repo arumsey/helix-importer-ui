@@ -11,26 +11,19 @@
  */
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
 import { initializeMetadata } from './customizations/metadata.js';
-import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
+import { attachOptionFieldsListeners, initOptionFields } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
 import {
-  asyncForEach,
-  getElementByXpath,
-  createElement,
-  getContentFrame,
-  PARENT_SELECTOR,
+  asyncForEach, getContentFrame, getCurrentURL, PARENT_SELECTOR, SPTABS,
 } from '../shared/utils.js';
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
-import {
-  defaultMappingsConfiguration,
-  getImporterSectionsMapping,
-  isDefaultMapping,
-  saveImporterSectionsMapping,
-} from '../sections-mapping/utils.ui.js';
+import { getImporterSectionsMapping } from '../sections-mapping/utils.ui.js';
 import { buildTransformationRulesFromMapping } from '../sections-mapping/import.rules.js';
 import TransformFactory from '../shared/transformfactory.js';
+import { setupMappingUI } from '../sections-mapping/mapping.row.js';
+import { handleBodyMouseClick } from '../sections-mapping/preview-selectors.js';
 
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
 
@@ -47,8 +40,6 @@ const TRANSFORMED_HTML_TEXTAREA = document.getElementById('import-transformed-ht
 const MD_SOURCE_TEXTAREA = document.getElementById('import-markdown-source');
 const MD_PREVIEW_PANEL = document.getElementById('import-markdown-preview');
 const TRANSFORMATION_TEXTAREA = document.getElementById('import-transform-source');
-
-const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs`);
 
 const DOWNLOAD_IMPORT_REPORT_BUTTON = document.getElementById('import-downloadImportReport');
 
@@ -453,6 +444,7 @@ const restoreWaitingUI = (processNext, finishingImport) => {
   DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.remove('hidden');
   DOWNLOAD_TRANSFORMATION_BUTTON?.classList.remove('hidden');
   enableProcessButtons();
+  PREVIEW_CONTAINER.classList.remove('hidden');
 
   if (finishingImport) {
     toggleLoadingButton(IMPORT_BUTTON);
@@ -497,300 +489,19 @@ const smartScroll = async (window, reset = false) => {
   }
 };
 
-const detectSections = async (src, frame) => {
+const loadPreviewPane = async (src, frame) => {
   const { originalURL } = frame.dataset;
-  const sections = await window.xp.detectSections(
-    frame.contentDocument.body,
-    frame.contentWindow.window,
-  );
-  const selectedSection = { id: null };
 
-  // eslint-disable-next-line no-console
-  console.log('sections', sections);
-
-  // Initialize mappings basic UI after detection
+  // Initialize mappings' basic UI after loading
   const allHidden = MAPPING_EDITOR?.querySelectorAll('[class~="hidden"]');
   allHidden.forEach((he) => {
     he.classList.remove('hidden');
   });
   MAPPING_EDITOR?.querySelector('#mapping-click-detection-prompt').classList.add('hidden');
 
-  const selectedSectionProxy = new Proxy(selectedSection, {
-    set: (target, key, value) => {
-      const oldValue = target[key];
-      // eslint-disable-next-line no-console
-      console.log(`${key} set from ${selectedSection.id} to ${value}`);
-      target[key] = value;
-      const oldOverlayDiv = getContentFrame().contentDocument.querySelector(`.xp-overlay[data-box-id="${oldValue}"]`);
-      if (oldOverlayDiv) {
-        oldOverlayDiv.classList.remove('hover');
-      }
-      const overlayDiv = getContentFrame().contentDocument.querySelector(`.xp-overlay[data-box-id="${value}"]`);
-      if (overlayDiv) {
-        overlayDiv.classList.add('hover');
-      }
-      return true;
-    },
-  });
+  frame.contentWindow.document.body.addEventListener('click', handleBodyMouseClick);
 
-  // Delete a row from the UI and remove its contents from the saved mappings.
-  const getRowDeleteButton = (url) => {
-    const deleteBtn = document.createElement('sp-button');
-    deleteBtn.setAttribute('variant', 'negative');
-    deleteBtn.setAttribute('icon-only', '');
-    deleteBtn.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
-    deleteBtn.addEventListener('click', (e) => {
-      const rowEl = e.target.closest('.row');
-      if (rowEl) {
-        let mappingData = getImporterSectionsMapping(originalURL);
-        const id = rowEl.dataset.sectionId ?? rowEl.dataset.customId;
-        // eslint-disable-next-line no-param-reassign
-        mappingData = mappingData.filter((m) => m.id !== id);
-
-        // save sections mapping data
-        saveImporterSectionsMapping(url, mappingData);
-
-        rowEl.remove();
-      }
-    });
-
-    const buttonContainer = document.createElement('div');
-    buttonContainer.append(deleteBtn);
-    return buttonContainer;
-  };
-
-  function saveMappingChange({ newMapping, newSelector, newVariants }) {
-    const mappingData = getImporterSectionsMapping(originalURL);
-    // update mapping data
-    const mItem = mappingData.find((m) => m.id === selectedSection.id);
-    if (mItem) {
-      mItem.mapping = newMapping ?? mItem.mapping;
-      mItem.selector = newSelector ?? mItem.selector;
-      mItem.variants = newVariants ?? mItem.variants;
-    } else if (selectedSection.id !== null) {
-      mappingData.push({
-        id: selectedSection.id,
-        selector: newSelector ?? selectedSection.selector,
-        mapping: newMapping ?? selectedSection.mapping,
-        variants: newVariants ?? selectedSection.variants,
-      });
-    } else {
-      // eslint-disable-next-line no-console
-      console.log('Id was null', JSON.stringify(selectedSection, undefined, 2));
-      return;
-    }
-    saveImporterSectionsMapping(originalURL, mappingData);
-  }
-
-  function getSelectorTextField(id, placeHolder, value, changeType, visible, helpText) {
-    const textField = createElement('sp-textfield', { id, placeHolder });
-    if (!visible) {
-      textField.classList.add('hidden');
-    }
-    textField.addEventListener('change', (e) => {
-      if (e.target.value && e.target.value.length > 0) {
-        const args = {};
-        args[changeType] = e.target.value;
-        saveMappingChange(args);
-
-        if (changeType === 'newSelector') {
-          // Manage warnings when the selector matches more than 1 element.
-          const allSelectors = frame.contentDocument.querySelectorAll(e.target.value);
-          if (allSelectors.length !== 1) {
-            alert.warning(`This selector produces ${allSelectors.length} results.`);
-          } else {
-            const help = e.target.parentElement.querySelector('sp-help-text');
-            if (help) {
-              help.remove();
-            }
-          }
-        }
-      }
-    });
-    if (value) {
-      textField.setAttribute('value', value);
-    }
-    if (helpText) {
-      textField.appendChild(
-        createElement('sp-help-text', { slot: 'help-text' }, helpText),
-      );
-    }
-
-    return textField;
-  }
-
-  function getBlockPicker(value = 'unset') {
-    const blockPickerDiv = document.createElement('div');
-    const blockPicker = document.createElement('sp-picker');
-    blockPicker.setAttribute('label', 'Mapping ...');
-    blockPicker.setAttribute('id', 'block-picker');
-
-    defaultMappingsConfiguration.forEach((group, idx, arr) => {
-      group.forEach((item) => {
-        const mItem = document.createElement('sp-menu-item');
-        item.attributes = item.attributes || [];
-        Object.keys(item.attributes).forEach((k) => {
-          mItem.setAttribute(k, item.attributes[k]);
-        });
-        mItem.textContent = item.label;
-        blockPicker.appendChild(mItem);
-      });
-      if (idx < arr.length - 1) {
-        blockPicker.appendChild(document.createElement('sp-menu-divider'));
-      }
-    });
-
-    blockPicker.setAttribute('value', value);
-
-    blockPicker.addEventListener('change', (e) => {
-      saveMappingChange({ newMapping: e.target.value });
-    });
-
-    blockPickerDiv.appendChild(blockPicker);
-
-    return blockPickerDiv;
-  }
-
-  function getMappingRow(section, idx = 1) {
-    const row = document.createElement('div');
-    row.dataset.idx = `${idx}`;
-    row.dataset.sectionId = section.id;
-    row.dataset.xpath = section.xpath;
-    row.classList.add('row');
-    const selector = !section.selector ? '' : section.selector;
-    const variants = !section.variants ? '' : section.variants;
-
-    const color = createElement('div', { id: 'sec-color', class: 'sec-color', style: `background-color: ${section.color || 'white'}` });
-    const moveUpBtnContainer = document.createElement('div');
-    const moveUpBtn = createElement(
-      'sp-button',
-      {
-        variant: 'primary',
-        'icon-only': '',
-        title: 'Move this item up one row',
-        style: `background-color: ${section.color}`,
-        class: 'move-up',
-      },
-    );
-    moveUpBtn.innerHTML = '<sp-icon-arrow-up slot="icon"></sp-icon-arrow-up>'
-      + '<sp-tooltip self-managed>Move this mapping up one row</sp-tooltip>';
-    moveUpBtn.addEventListener('click', (e) => {
-      const rowEl = e.target.closest('.row');
-      if (rowEl) {
-        const mappingData = getImporterSectionsMapping(originalURL);
-        const id = rowEl.dataset.sectionId;
-        const index = mappingData.findIndex((m) => m.id === id);
-        if (index >= 0) {
-          const movedMapping = mappingData.splice(index, 1);
-          mappingData.splice(index - 1, 0, movedMapping[0]);
-
-          // save sections mapping data
-          saveImporterSectionsMapping(originalURL, mappingData);
-          rowEl.parentNode.insertBefore(rowEl, rowEl.previousElementSibling);
-
-          // Give a little visual feedback that the row was moved.
-          rowEl.style.backgroundColor = 'blue';
-          setTimeout(() => {
-            rowEl.style.backgroundColor = '';
-          }, 300);
-        }
-      }
-    });
-    moveUpBtnContainer.append(moveUpBtn);
-
-    let helpText;
-    if (selector?.length > 0) {
-      try {
-        const allSelectors = frame.contentDocument.querySelectorAll(selector);
-        if (allSelectors.length !== 1) {
-          helpText = `This selector produces ${allSelectors.length} results.`;
-        }
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error('Error checking selector', e);
-      }
-    }
-    const domSelector = getSelectorTextField(
-      'sec-dom-selector',
-      'Selector',
-      selector,
-      'newSelector',
-      true,
-      helpText,
-    );
-    const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
-    const selectorDiv = createElement('div', { title: `${title}` });
-    selectorDiv.appendChild(domSelector);
-    selectorDiv.appendChild(createElement('sp-tooltip', { 'self-managed': true }, title));
-
-    const variantsField = getSelectorTextField(
-      'sec-dom-variants',
-      'Add optional block variants',
-      variants,
-      'newVariants',
-      true,
-    );
-
-    const mappingPicker = getBlockPicker(section.mapping);
-    const deleteBtn = getRowDeleteButton(originalURL);
-
-    row.append(color, moveUpBtnContainer, selectorDiv, mappingPicker, variantsField, deleteBtn);
-
-    row.addEventListener('mouseenter', (e) => {
-      const target = e.target.nodeName === 'DIV' ? e.target : e.target.closest('.row');
-      if (target.nodeName === 'DIV') {
-        const id = target.dataset.sectionId;
-        const div = getElementByXpath(frame.contentDocument, target.dataset.xpath);
-        if (div) {
-          div.scrollIntoViewIfNeeded({ behavior: 'smooth' });
-        }
-        selectedSectionProxy.id = id;
-
-        // Highlight the box by emphasising the border for a second.
-        // Maybe...
-        // const originalStyle = div.style;
-        // div.style = `${originalStyle};border: 50px green solid !important;`;
-        // setTimeout(() => {
-        //   div.style = originalStyle;
-        // }, 1000);
-      }
-    });
-
-    return row;
-  }
-
-  const mappingData = getImporterSectionsMapping(originalURL);
-
-  // Set up the non-customized block mappings.
-  mappingData.filter((md) => isDefaultMapping(md)).forEach((m) => {
-    const row = getMappingRow(m, MAPPING_EDITOR_SECTIONS.children.length);
-    MAPPING_EDITOR_SECTIONS.appendChild(row);
-  });
-
-  frame.contentDocument.body.addEventListener('click', (e) => {
-    const clickMappingData = getImporterSectionsMapping(originalURL);
-    const overlayDiv = e.target; // .closest('.xp-overlay');
-    if (overlayDiv.dataset.boxData) {
-      const section = JSON.parse(overlayDiv.dataset.boxData);
-      section.color = overlayDiv.style.borderColor;
-      section.mapping = 'unset';
-
-      if (!clickMappingData.find((m) => m.id === section.id)) {
-        clickMappingData.push({
-          id: section.id,
-          selector: section.selector,
-          xpath: section.xpath,
-          layout: section.layout,
-          color: section.color,
-        });
-        const row = getMappingRow(section, MAPPING_EDITOR_SECTIONS.children.length);
-        MAPPING_EDITOR_SECTIONS.appendChild(row);
-        saveImporterSectionsMapping(originalURL, clickMappingData);
-      }
-    }
-  });
-
-  initializeMetadata(originalURL, getRowDeleteButton);
+  initializeMetadata(originalURL);
 };
 
 const attachListeners = () => {
@@ -845,6 +556,7 @@ const attachListeners = () => {
 
   IMPORT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
+    ui.markdownPreview.innerHTML = WebImporter.md2html('Running import. Please wait...');
 
     if (IS_BULK) {
       clearResultPanel();
@@ -1029,7 +741,6 @@ const attachListeners = () => {
   DETECT_BUTTON?.addEventListener('click', (async () => {
     DOWNLOAD_IMPORT_REPORT_BUTTON?.classList.add('hidden');
     DOWNLOAD_TRANSFORMATION_BUTTON?.classList.add('hidden');
-    PREVIEW_CONTAINER?.classList.remove('hidden');
     MAPPING_EDITOR_SECTIONS.innerHTML = '';
 
     disableProcessButtons();
@@ -1129,7 +840,7 @@ const attachListeners = () => {
                   });
 
                   if (onLoadSucceeded) {
-                    await detectSections(src, frame);
+                    await loadPreviewPane(src, frame);
                   }
                 }
 
@@ -1177,6 +888,9 @@ const attachListeners = () => {
       } else {
         // All detecting is complete - reset UI.
         restoreWaitingUI(processNext, false);
+
+        await sleep(config.fields['import-pageload-timeout'] || 5000);
+        setupMappingUI(getCurrentURL());
       }
     };
     processNext();
@@ -1250,6 +964,9 @@ const init = () => {
   attachListeners();
 
   if (IS_EXPRESS && config.fields['import-detect-on-load'] && config.fields['import-url']) {
+    const newMessage = 'No need to detect sections. Click on what you are interested in. If you do not like that selector, you can change it. Shift click to increase precision and ctrl click to decrease precision. Have fun! ';
+    alert.info(newMessage);
+
     DETECT_BUTTON?.click();
   }
 };

@@ -1,0 +1,64 @@
+/* Express styles */
+.import-express #mapping-editor {
+
+  /* Show 'up' button, or color swatch. */
+  & .row:first-child div:has(.move-up) {
+    display: none;
+  }
+
+  & .row:not(:first-child) .sec-color {
+    display: none;
+    visibility: collapse;
+  }
+
+  & .row {
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    align-items: top;
+    cursor: pointer;
+    border-radius: 0.5rem;
+
+    & .sec-selector-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      & > div {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 1rem;
+
+        & sp-number-field {
+          width: 100px;
+        }
+      }
+    }
+
+    &.highlight {
+      background-color: var(--spectrum-seafoam-background-color-default);
+    }
+
+    & .sec-selector-group,
+    & #sec-dom-variants {
+      min-width: 240px;
+    }
+
+    & #sec-dom-mapping {
+      min-width: 192px;
+    }
+
+    & #sec-color {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 32px;
+    }
+
+    & #sec-layout {
+      width: 107px;
+    }
+  }
+}

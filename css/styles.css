@@ -206,6 +206,10 @@ section .section-cols .section-col {
   overflow-x: auto;
 }
 
+section .section-cols .section-col:nth-child(2) {
+  height: calc(100% - 50px);
+}
+
 section form {
   margin-bottom: 12px;
 }
