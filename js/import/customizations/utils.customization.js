@@ -1,26 +1,14 @@
-import { createElement, getContentFrame } from '../../shared/utils.js';
+import { createElement, getCurrentURL } from '../../shared/utils.js';
 import {
   getImporterSectionsMapping,
   saveImporterSectionsMapping,
 } from '../../sections-mapping/utils.ui.js';
 import alert from '../../shared/alert.js';
-
-// Handler for deleting a row for this scope (copied until `mappingData` is centralized).
-let getCustomizedRowDeleteButton;
+import { getRowDeleteButton } from '../../sections-mapping/mapping.row.js';
 
 const customizedFields = {
   metadata: ['name', 'value', 'condition'],
   variant: ['value', 'condition'],
-};
-
-/**
- * Get the current URL.  User can change from time to time.
- * @returns {string}
- */
-const getCurrentURL = () => {
-  const frame = getContentFrame();
-  const { originalURL } = frame.dataset;
-  return originalURL;
 };
 
 const addBlankRowIfRequired = (viewDiv, addButton) => {
@@ -124,7 +112,7 @@ const getCustomizationRow = (originalURL, mapping, view) => {
     },
   );
 
-  const delButton = getCustomizedRowDeleteButton(originalURL);
+  const delButton = getRowDeleteButton(originalURL);
   customizationRow.append(valueField, urlField, delButton);
   valueField.addEventListener('change', (e) => {
     updateCustomizedMapping(e, view);
@@ -140,7 +128,6 @@ const getCustomizationRow = (originalURL, mapping, view) => {
  * After the mappings are read in, and the detection has been run, set up the custom
  * mappings in the provided tab.
  * @param importURL
- * @param getRowDeleteButton
  * @param blockType (currently, either 'metadata' or 'variant')
  * @param viewDiv
  * @param viewSection
@@ -148,14 +135,12 @@ const getCustomizationRow = (originalURL, mapping, view) => {
  */
 const initializeView = (
   importURL,
-  getRowDeleteButton,
   blockType,
   viewDiv,
   viewSection,
   addButton,
 ) => {
   const mappingData = getImporterSectionsMapping(importURL);
-  getCustomizedRowDeleteButton = getRowDeleteButton;
   const allHidden = viewDiv?.querySelectorAll('[class~="hidden"]');
   allHidden.forEach((he) => {
     he.classList.remove('hidden');
