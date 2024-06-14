@@ -75,12 +75,16 @@
                                         <sp-checkbox class="option-field" id="import-scroll-to-bottom" checked>
                                             Scroll to bottom
                                         </sp-checkbox>
-                                        <sp-checkbox class="option-field" id="import-detect-on-load" checked>
-                                            Detect Sections when page loads
-                                        </sp-checkbox>
 
                                         <sp-field-label for="import-custom-headers">Custom headers</sp-field-label>
                                         <sp-textfield class="option-field" id="import-custom-headers" multiline placeholder="Define your custom headers as a JSON object with key/value (header name/header value)"></sp-textfield>
+                                    </div>
+                                </sp-accordion-item>
+                                <sp-accordion-item label="Detect Options">
+                                    <div>
+                                        <sp-checkbox class="option-field" id="import-detect-on-load" checked>
+                                            Detect Sections when page loads
+                                        </sp-checkbox>
                                     </div>
                                 </sp-accordion-item>
                             </sp-accordion>
@@ -102,7 +106,7 @@
                             <sp-tab label="Mapping" value="mapping-editor"></sp-tab>
                             <sp-tab label="Customization" value="block-customization"></sp-tab>
                             <sp-tab label="Preview" value="import-preview"></sp-tab>
-                            <sp-tab label="Transformation" value="import-transform"></sp-tab>
+                            <sp-tab label="Rules" value="import-transform"></sp-tab>
                             <div id="import-file-picker-container"></div>
                             <sp-tab-panel value="mapping-editor">
                                 <sp-theme color="light" scale="medium">
@@ -164,8 +168,7 @@
                             </sp-tab-panel>
                         </sp-tabs>
                         <sp-button-group class="import-download-files">
-                            <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
-                            <sp-button id="import-downloadTransformation">Download transformation</sp-button>
+                            <sp-button id="import-downloadTransformation">Download rules</sp-button>
                         </sp-button-group>
                     </div>
                 </div>

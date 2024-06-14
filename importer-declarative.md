@@ -1,6 +1,6 @@
 # Declarative Transformations
 
-A declarative transformation is a JSON object that describes how a site should be imported to AEM Edge Delivery without requiring any code to be written. 
+A declarative transformation is a JSON object that describes the rules of how a site should be imported to AEM Edge Delivery without requiring any code to be written. 
 
 ## JSON Structure
 
@@ -8,7 +8,7 @@ A declarative transformation is a JSON object that describes how a site should b
 {
   "root": "<string>",
   "cleanup": {
-    "start": ["<string>"]
+    "start": ["<string>"],
     "end": ["<string>"]
   },
   "blocks": [
@@ -96,6 +96,18 @@ Example: Creates a block with one row and two columns. The first column contains
   ["div:has(p > img)", ":scope > div:last-child"]
 ]
 ```
+
+#### Text expressions
+
+A `::text` pseudo-element can be used to query text nodes in a document.
+
+A text **search** query can be used to target an element that contains a specific text value.
+
+    div.sidebarbody ::text(Exmaple body text)
+
+A text **value** query can ube used to extract adjacent sibling text that can then be used as a cell's value.
+
+    [[".text-center small strong", ".text-center small strong:first-child + ::text"]]
 
 ### Built-in block parsers
 

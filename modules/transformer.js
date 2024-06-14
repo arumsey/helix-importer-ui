@@ -1,4 +1,5 @@
 import parsers from './parsers/index.js';
+import CellUtils from './cells.js';
 
 /* global WebImporter */
 
@@ -6,8 +7,25 @@ const IGNORE_ELEMENTS = [
   'style',
   'source',
   'script',
+  'noscript',
   'iframe',
 ];
+
+function processRemoval(main, selectors = []) {
+  WebImporter.DOMUtils.remove(
+    main,
+    selectors.filter((selector) => !CellUtils.isTextSelector(selector)),
+  );
+  const textSelectors = selectors.filter(CellUtils.isTextSelector);
+  textSelectors.forEach((selector) => {
+    const { selector: searchSelector, search: searchValue } = CellUtils.getSearchSelector(selector);
+    [...main.querySelectorAll(searchSelector)]
+      .flatMap((el) => [...el.childNodes])
+      .filter((node) => node.nodeType === Node.TEXT_NODE
+        && node.textContent.trim() === searchValue)
+      .forEach((node) => node.remove());
+  });
+}
 
 export default class Transformer {
   /**
@@ -34,8 +52,7 @@ export default class Transformer {
     const main = document.querySelector(root) || document.body;
 
     // phase 2: DOM removal - start
-    WebImporter.DOMUtils.remove(main, removeIgnore);
-    WebImporter.DOMUtils.remove(main, removeStart);
+    processRemoval(main, removeStart);
 
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
@@ -44,7 +61,7 @@ export default class Transformer {
       } = blockCfg;
       const parserFn = parse || parsers[type] || parsers.block;
       const validSelectors = selectors
-        ? selectors.filter(WebImporter.CellUtils.isValidCSSSelector)
+        ? selectors.filter(CellUtils.isValidCSSSelector)
         : [];
       const elements = validSelectors.length
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
@@ -52,13 +69,13 @@ export default class Transformer {
       // process every element for this block
       elements.forEach((element) => {
         // add params to source
-        source.params = { ...source.params, ...params };
+        const mergedParams = { ...source.params, ...params };
         // parse the element into block items
-        let items = parserFn.call(this, element, source);
+        let items = parserFn.call(this, element, { ...source, params: mergedParams });
         if (Array.isArray(items)) {
           items = items.filter((item) => item);
         }
-        if (!WebImporter.CellUtils.isEmpty(items)) {
+        if (!CellUtils.isEmpty(items)) {
           // create the block
           const block = WebImporter.Blocks.createBlock(document, {
             name: WebImporter.Blocks.computeBlockName(type),
@@ -80,7 +97,8 @@ export default class Transformer {
     });
 
     // phase 4: DOM removal - end
-    WebImporter.DOMUtils.remove(document, removeEnd);
+    processRemoval(main, removeEnd);
+    WebImporter.DOMUtils.remove(main, removeIgnore);
 
     return main;
   }

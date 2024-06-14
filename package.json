@@ -20,6 +20,7 @@
     "@adobe/remark-gridtables": "3.0.6",
     "@spectrum-web-components/bundle": "0.42.5",
     "@spectrum-web-components/icons-workflow": "0.42.5",
+    "dompurify": "^3.1.5",
     "hast-util-raw": "9.0.3",
     "hast-util-to-html": "9.0.1",
     "mdast-util-to-hast": "13.2.0",

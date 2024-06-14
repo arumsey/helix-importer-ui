@@ -11,11 +11,17 @@ function isDate(str) {
 export default function parse(element, { document, params: { cells = {} } }) {
   const baseMetadata = WebImporter.Blocks.getMetadata(document) || {};
   const customMetadata = blockParser(document, { params: { cells } });
-  // convert dates
-  Object.entries(customMetadata).forEach(([key, value]) => {
+  const meta = { ...baseMetadata, ...customMetadata };
+  Object.entries(meta).forEach(([key, value]) => {
+    // use first image
+    if (key === 'Image') {
+      const [img1] = value.src.split(',');
+      value.src = img1;
+    }
+    // convert dates
     if (isDate(value)) {
-      customMetadata[key] = new Date(value).toISOString().slice(0, 10);
+      meta[key] = new Date(value).toISOString().slice(0, 10);
     }
   });
-  return { ...baseMetadata, ...customMetadata };
+  return meta;
 }
