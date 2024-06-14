@@ -9,6 +9,7 @@ const IGNORE_ELEMENTS = [
   'script',
   'noscript',
   'iframe',
+  'noscript',
 ];
 
 function processRemoval(main, selectors = []) {

@@ -202,7 +202,10 @@ function getSelectorNumberField(label, property, value, min) {
 }
 
 function getSelectorTextField(id, placeHolder, value, changeType, visible, disabled, helpText) {
-  const textField = createElement('sp-textfield', { id, placeHolder, disabled });
+  const textField = createElement('sp-textfield', { id, placeHolder });
+  if (disabled) {
+    textField.setAttribute('disabled', 'true');
+  }
   if (!visible) {
     textField.classList.add('hidden');
   }

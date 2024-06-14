@@ -13,6 +13,8 @@ const defaultMappingsConfiguration = [
     { label: 'Hero', attributes: { value: 'hero' } },
     { label: 'Cards', attributes: { value: 'cards' } },
     { label: 'Carousel', attributes: { value: 'carousel' } },
+    { label: 'Text', attributes: { value: 'text' } },
+    { label: 'Tabs', attributes: { value: 'tabs' } },
   ],
   [{ label: 'Snapshot', attributes: { value: 'snapshot', disabled: true } }],
 ];
