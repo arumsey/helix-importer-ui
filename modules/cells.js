@@ -2,6 +2,7 @@ import DOMPurify from 'dompurify';
 
 const PSEUDO_TEXT_SELECTOR = '::text';
 const TEMPLATE_REGEX = /\{\{(.+?)}}/g;
+const ATTRIBUTE_REGEX = /\[([^=]*?)]$/;
 
 function isHTMLElement(el) {
   return (
@@ -22,6 +23,43 @@ function isValidCSSSelector(selector) {
   }
 }
 
+function isAttributeSelector(selector) {
+  return ATTRIBUTE_REGEX.test(selector);
+}
+
+function getValueSelector(selector = '') {
+  const expr = new RegExp(`${PSEUDO_TEXT_SELECTOR}(?::nth-child\\((?<nthChild>\\d+)\\))?$`);
+  const useText = expr.test(selector);
+  const [, nthChild] = selector.match(expr) || [];
+  let cleanSelector = selector.replace(expr, '');
+  const useSiblingText = useText && cleanSelector.endsWith('+ ');
+  cleanSelector = cleanSelector.replace(/\+ \*$/, '');
+  return {
+    selector: cleanSelector.trim(),
+    useText,
+    useSiblingText,
+    childIndex: parseInt(nthChild, 10),
+  };
+}
+
+function getElementText(element, options) {
+  const {
+    useText, childIndex, useSiblingText, selector,
+  } = options;
+  const [, attribute] = selector.match(ATTRIBUTE_REGEX) || [];
+  if (!useText && attribute) {
+    return element.getAttribute(attribute);
+  }
+  if (childIndex && !Number.isNaN(childIndex)) {
+    const textNodes = [...element.childNodes]
+      .filter((el) => el.nodeType === Node.TEXT_NODE);
+    return textNodes[childIndex - 1]?.textContent || '';
+  }
+  return useSiblingText
+    ? element.nextSibling.textContent
+    : element.textContent || element.content || '';
+}
+
 /**
  * Evaluate a cell value based on a selector or template string.
  * If the cell is a selector, query the element for the value.
@@ -30,22 +68,62 @@ function isValidCSSSelector(selector) {
  *
  * @param element Block element
  * @param cell Selector or template string
+ * @param params Additional parameters for cell evaluation
  * @return {HTMLElement[]}
  */
-function evaluateCell(element, cell) {
+function evaluateCell(element, cell, params = {}) {
+  if (!cell) {
+    return undefined;
+  }
+
   let cellList = cell;
   if (!Array.isArray(cellList)) {
     cellList = [cellList];
   }
   return cellList.map((c) => {
-    if (isValidCSSSelector(c)) {
-      return [...element.querySelectorAll(c)];
+    const { selector: valueSelector, useText, ...textProps } = getValueSelector(c);
+    const selector = valueSelector;
+    if (selector && isValidCSSSelector(selector)) {
+      // convert selector string to a cell value
+      let cellValue = [...element.querySelectorAll(selector)].map((el) => {
+        const isEmptyElement = el.childNodes.length === 0;
+        if (isEmptyElement
+            || useText
+            || isAttributeSelector(selector)
+            || params.replace) {
+          let text = getElementText(el, { useText, ...textProps, selector });
+          // additional processing based on conditional params that were provided
+          const { replace, split } = params;
+          // perform replacements
+          if (replace) {
+            const [search, replacement = ''] = replace;
+            text = text.replace(new RegExp(search), replacement).trim();
+          }
+          if (split) {
+            const [delim, partIndex = 0] = split;
+            const textParts = text.split(delim).filter((part) => part);
+            if (textParts.length > partIndex) {
+              text = textParts[partIndex];
+            }
+          }
+          return text ? text.replace(/^\s+|\s+$/g, '') : text;
+        }
+        return el;
+      });
+      if (cellValue.length <= 1) {
+        [cellValue = selector] = cellValue;
+      }
+      return cellValue;
     }
-    // convert template string to HTML
+    // convert template string to a cell value
     let html = c.replace(TEMPLATE_REGEX, (match, expression) => {
       const value = expression.trim();
       if (isValidCSSSelector(value)) {
-        return element.querySelector(value)?.innerHTML || '';
+        const matchedElement = element.querySelector(value);
+        if (isAttributeSelector(value)) {
+          return getElementText(matchedElement, { selector: value });
+        }
+        return matchedElement?.innerHTML || '';
       }
       return value;
     });
@@ -79,39 +157,12 @@ export default class CellUtils {
         selector = conditionalSelector;
         params = conditionalParams || {};
       }
-      let cfgValue = selector;
-      const { selector: valueSelector, useSiblingText } = CellUtils.getValueSelector(selector);
-      selector = valueSelector;
-      if (selector && CellUtils.isValidCSSSelector(selector)) {
-        const [, attribute] = selector.match(/\[(.*?)\]$/) || [];
-        if (attribute) {
-          selector = selector.replace(/\[(.*?)\]$/, '');
-        }
-        cfgValue = [
-          ...element.querySelectorAll(selector)]
-          .map((el) => {
-            let text = '';
-            if (attribute) {
-              text = el.getAttribute(attribute);
-            } else {
-              text = useSiblingText
-                ? el.nextSibling.textContent
-                : el.textContent || el.content;
-            }
-            // additional processing based on conditional params that were provided
-            const { replace: [search, replace = ''] = [] } = params;
-            // perform replacements
-            if (search) {
-              return text.replace(new RegExp(search), replace).trim();
-            }
-            return text ? text.trim() : text;
-          });
-        if (cfgValue.length <= 1) {
-          [cfgValue = selector] = cfgValue;
-        }
-      }
+      const cfgValue = evaluateCell(element, selector, params);
       if (cfgValue !== undefined) {
-        cfg[name] = cfgValue;
+        const doc = element.ownerDocument || element;
+        const cfgElement = doc.createElement('p');
+        cfgElement.append(...cfgValue);
+        cfg[name] = cfgElement;
       }
     });
     return cfg;
@@ -170,17 +221,6 @@ export default class CellUtils {
 
   static isTextSelector(selector = '') {
     return selector.includes(PSEUDO_TEXT_SELECTOR) || false;
-  }
-
-  static getValueSelector(selector = '') {
-    const useText = selector.endsWith(PSEUDO_TEXT_SELECTOR) || false;
-    let cleanSelector = selector.replace(PSEUDO_TEXT_SELECTOR, '*');
-    const useSiblingText = useText && cleanSelector.endsWith('+ *');
-    cleanSelector = cleanSelector.replace(/\+ \*$/, '');
-    return {
-      selector: cleanSelector,
-      useSiblingText,
-    };
   }
 
   static getSearchSelector(selector = '') {
