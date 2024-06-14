@@ -18,6 +18,9 @@ import {
 
 // Build a selector for the element.
 function buildSelector(element) {
+  if (!element) {
+    return '';
+  }
   const id = element.getAttribute('id');
   let classes = element?.className.trim().replaceAll(' ', '.');
   let selector = '';
@@ -145,18 +148,18 @@ function handleBodyMouseClick(event) {
     mappings.push(currentMapping);
   }
   if (event.shiftKey) {
-    // Shift key, so increase the depth by 1.
-    currentMapping.precision += 1;
-    currentMapping.selector = buildSelectorWithDepth(target, currentMapping.precision);
-  } else if (event.ctrlKey) {
-    // Ctrl key, so reduce the depth by 1.
-    currentMapping.precision = Math.max(0, currentMapping.precision - 1);
-    currentMapping.selector = buildSelectorWithDepth(target, currentMapping.precision);
-  } else if (!newMapping) {
-    // No modifier key, so reset the selector.
+    // Shift key, so reset the selector.
     currentMapping.selector = buildSelector(target);
     currentMapping.precision = 1;
     currentMapping.offset = 0;
+  } else if (event.ctrlKey) {
+    // Ctrl key, delete mapping
+    mappings.splice(mappings.indexOf(currentMapping), 1);
+    mappingRow.remove();
+    target.dataset.boxData = ''
+    saveImporterSectionsMapping(getCurrentURL(), mappings);
+    target.style.border = 'initial';
+    return;
   }
 
   console.log('Latest selector is:', JSON.stringify(currentMapping, undefined, 2));

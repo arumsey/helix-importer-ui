@@ -172,8 +172,7 @@ function onMappingChange(e, property) {
     const args = handleRowData(row);
     prev[property] = args[property];
     args[property] = e.target.value;
-    const { sectionId, selector, precision, offset, xpath } = handleRowData(row, args);
-    saveMappingChange(sectionId, args);
+    const { sectionId, selector, precision, offset, xpath } = args;
 
     if (['precision', 'offset'].includes(property)) {
       const selector = row.querySelector('#sec-dom-selector');
@@ -185,10 +184,15 @@ function onMappingChange(e, property) {
       }
       row.querySelector('#sec-dom-offset').setAttribute('max', `${parseInt(precision) - 1}`);
       selector.value = deepSelector;
-      setSelectorHelperText(row, deepSelector);
+      args.selector = deepSelector;
+      setSelectorHelperText(row, deepSelector, frame);
     } else if ('selector' === property) {
+      args.selector = selector;
       setSelectorHelperText(row, selector, frame);
     }
+
+    saveMappingChange(sectionId, args);
+    handleRowData(row, args);
   }
 }
 
@@ -258,7 +262,7 @@ function createMappingRow(section, idx = 1) {
   const frame = getContentFrame();
   const row = document.createElement('div');
   row.classList.add('row');
-  const { selector, variants, precision, offset } = handleRowData(row, {
+  const args = handleRowData(row, {
     idx: idx,
     sectionId: section.id,
     xpath: section.xpath,
@@ -268,7 +272,9 @@ function createMappingRow(section, idx = 1) {
     offset: section.offset ?? 0,
     customId: undefined,
   });
+  const { selector, variants, precision, offset } = args;
 
+  row.dataset.mapping = JSON.stringify(args);
   const color = createElement('div', { id: 'sec-color', class: 'sec-color', style: `background-color: ${section.color || 'white'}` });
   const moveUpBtnContainer = document.createElement('div');
   const moveUpBtn = createElement(
@@ -288,7 +294,7 @@ function createMappingRow(section, idx = 1) {
     const rowEl = e.target.closest('.row');
     if (rowEl) {
       const mappingData = getImporterSectionsMapping(currentURL);
-      const id = rowEl.dataset.sectionId;
+      const id = handleRowData(rowEl)?.sectionId;
       const index = mappingData.findIndex((m) => m.id === id);
       if (index >= 0) {
         const movedMapping = mappingData.splice(index, 1);

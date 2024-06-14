@@ -41,7 +41,7 @@ Allows to find URLs on a given host. 2 processes:
 
 ### Eyedropper
 
-Allows to extract the CSS styles (font, colors) for an give page. Those styles can be used with the https://github.com/adobe/helix-project-boilerplate project.
+Allows to extract the CSS styles (font, colors) for a given page. Those styles can be used with the https://github.com/adobe/helix-project-boilerplate project.
 
 ## Cache
 
