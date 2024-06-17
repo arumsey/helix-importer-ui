@@ -1,5 +1,6 @@
 export default function parse(el) {
-  return [...el.childNodes].map((node) => {
+  // Main case -> text node of the immediate children of 'el'
+  let textCells = [...el.childNodes].map((node) => {
     let nextText = '';
     if (node.nodeType === Node.TEXT_NODE) {
       nextText = node.textContent.trim();
@@ -9,5 +10,18 @@ export default function parse(el) {
       return [nextText];
     }
     return null;
-  });
+  }).filter((cell) => cell);
+
+  // Did not get any hits so put together the text (in rows) of the children.
+  if (textCells.length === 0) {
+    textCells = [...el.children].map((node) => {
+      const nextText = node.innerText.trim();
+      if (nextText.length > 0) {
+        return [nextText];
+      }
+      return null;
+    }).filter((cell) => cell);
+  }
+
+  return textCells;
 }

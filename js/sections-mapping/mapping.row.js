@@ -14,7 +14,7 @@ import { buildSelectorWithDepth } from './preview-selectors.js';
 
 const MAPPING_EDITOR_SECTIONS = document.getElementById('mapping-editor-sections');
 const MAX_CLASSES_PER_ELEMENT = 2;
-const CLICK_CONTAINERS = ['DIV', 'SECTION', 'HEADER', 'BODY' ];
+const CLICK_CONTAINERS = ['DIV', 'SECTION', 'HEADER', 'BODY', 'A' ];
 
 const originalStyles = [];
 
@@ -56,7 +56,7 @@ function handleMouseOverMappingRow(e, mouseIsOver) {
     }
     const original = originalStyles.find((os) => os.xpath === xpath);
     if (mouseIsOver) {
-      div.scrollIntoViewIfNeeded({ behavior: 'smooth' });
+      // div.scrollIntoViewIfNeeded({ behavior: 'smooth' });
       if (!original) {
         originalStyles.push({
           style: div.style,

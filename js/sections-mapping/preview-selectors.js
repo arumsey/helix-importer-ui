@@ -16,6 +16,8 @@ import {
   saveImporterSectionsMapping
 } from './utils.ui.js';
 
+const TRUST_NODE_ID = true;
+
 // Build a selector for the element.
 function buildSelector(element) {
   if (!element) {
@@ -111,8 +113,18 @@ function handleBodyMouseClick(event) {
 
   const currentURL = getCurrentURL();
   let containerTarget = event.target;
-  while (containerTarget && !CLICK_CONTAINERS.includes(containerTarget.tagName)) {
-    containerTarget = containerTarget.parentElement;
+  // If already at a container, see if there are legit child containers.
+  if (CLICK_CONTAINERS.includes(containerTarget.tagName)) {
+    while (containerTarget.children.length === 1 && CLICK_CONTAINERS.includes(containerTarget.children[0].tagName)) {
+      containerTarget = containerTarget.children[0];
+      if (TRUST_NODE_ID && containerTarget.getAttribute('id')) {
+        break;
+      }
+    }
+  } else {
+    while (containerTarget && !CLICK_CONTAINERS.includes(containerTarget.tagName)) {
+      containerTarget = containerTarget.parentElement;
+    }
   }
 
   let mappingData = {};
