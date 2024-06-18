@@ -12,7 +12,7 @@
 /* global CodeMirror, html_beautify, ExcelJS, WebImporter */
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
-import { asyncForEach } from '../shared/utils.js';
+import { asyncForEach, getCurrentURL } from '../shared/utils.js';
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
@@ -20,6 +20,12 @@ import * as fragmentUI from '../sections-mapping/sm.ui.js';
 import { buildTransformationRulesFromMapping } from './import.rules.js';
 import TransformFactory from '../shared/transformfactory.js';
 import { getSectionsMappingData } from '../sections-mapping/import/sections-mapping.import.js';
+import {
+  initializeFreeMappings,
+} from '../sections-mapping/free-mappings/preview-selectors.js';
+import { toggleFreeMappingEditor } from '../sections-mapping/free-mappings/mapping.row.js';
+import { getFreeSelectionsMapping } from '../sections-mapping/free-mappings/mapping.utils.js';
+import { isFragmentMapping } from '../sections-mapping/import/import.utils.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -127,6 +133,19 @@ const setupUI = () => {
   fragmentUI.init(config);
 };
 
+/**
+ * Get the mappings based on current detection options.
+ * @param url
+ * @returns {string|"standard"|"xr-standard"|[]|*|*[]}
+ */
+const getImportMappings = (url) => {
+  if (!isFragmentMapping(config)) {
+    return getFreeSelectionsMapping(url);
+  }
+
+  return getSectionsMappingData(url) || [];
+};
+
 const loadResult = ({ md, html: outputHTML }, originalURL) => {
   if (outputHTML) {
     ui.transformedEditor?.setValue(html_beautify(outputHTML.replaceAll(/\s+/g, ' '), {
@@ -156,8 +175,8 @@ const loadResult = ({ md, html: outputHTML }, originalURL) => {
   }
 
   if (ui.jsonEditor) {
-    const mapping = getSectionsMappingData(originalURL) || [];
-    const transform = buildTransformationRulesFromMapping(mapping);
+    const mapping = getImportMappings(originalURL) || [];
+    const transform = buildTransformationRulesFromMapping(mapping, isFragmentMapping(config));
     ui.jsonEditor.setValue(JSON.stringify(transform, null, 2));
   }
 };
@@ -486,6 +505,7 @@ const restoreWaitingUI = (processNext, finishingImport) => {
   } else {
     toggleLoadingButton(DETECT_BUTTON);
   }
+  initializeFreeMappings(getContentFrame(), getCurrentURL());
 };
 
 const sleep = (ms) => new Promise(
@@ -510,10 +530,22 @@ const smartScroll = async (window, reset = false) => {
   }
 };
 
-const detectSections = async (src, frame) => {
+const preparePagePreview = async (src, frame) => {
+  const { originalURL } = frame.dataset;
+
+  // If user has chosen to pick sections manually, load the preview pane, ready the click
+  // handlers, etc.
+  if (!isFragmentMapping(config)) {
+    console.log('import-sm-free-selections', true);
+    initializeFreeMappings(frame, originalURL);
+
+    return;
+  }
+
+  toggleFreeMappingEditor(false);
+
   console.log('import-sm-auto-detect', config.fields['import-sm-auto-detect']);
 
-  const { originalURL } = frame.dataset;
   const sections = await window.xp.detectSections(
     frame.contentDocument.body,
     frame.contentWindow.window,
@@ -604,6 +636,7 @@ const attachListeners = () => {
 
   IMPORT_BUTTON?.addEventListener('click', (async () => {
     initImportStatus();
+    ui.markdownPreview.innerHTML = WebImporter.md2html('Running import. Please wait...');
 
     if (IS_BULK) {
       clearResultPanel();
@@ -718,9 +751,9 @@ const attachListeners = () => {
                     let transform = null;
                     if (IS_EXPRESS && fragmentUI.useImportRules()) {
                       // auto generate transformation config
-                      const mapping = getSectionsMappingData(originalURL) || [];
+                      const mapping = getImportMappings(originalURL) || [];
                       transform = TransformFactory.create(
-                        buildTransformationRulesFromMapping(mapping),
+                        buildTransformationRulesFromMapping(mapping, isFragmentMapping(config)),
                       );
                     }
                     config.importer.setTransformationInput({
@@ -908,7 +941,7 @@ const attachListeners = () => {
                   });
 
                   if (onLoadSucceeded) {
-                    await detectSections(src, frame);
+                    await preparePagePreview(src, frame);
                   }
                 }
 
@@ -997,13 +1030,13 @@ const attachListeners = () => {
       mode: 'readwrite',
     });
 
-    const mapping = getSectionsMappingData(originalURL) || [];
+    const mapping = getImportMappings(originalURL) || [];
 
     // save sections mapping data for current URL
     await saveFile(importDirHandle, 'import_mapping.json', JSON.stringify(mapping, null, 2));
 
     // save import json
-    const transformCfg = buildTransformationRulesFromMapping(mapping);
+    const transformCfg = buildTransformationRulesFromMapping(mapping, isFragmentMapping(config));
     await saveFile(importDirHandle, 'import.json', JSON.stringify(transformCfg, null, 2));
   });
 

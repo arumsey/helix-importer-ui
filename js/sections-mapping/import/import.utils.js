@@ -209,3 +209,7 @@ export function extractBackground(el, document, options = {}) {
 
   return background;
 }
+
+export const isFragmentMapping = (config) => {
+  return !config.fields['import-sm-free-selections'];
+}

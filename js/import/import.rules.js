@@ -86,12 +86,18 @@ function buildBlockCellsFromMapping(mappingList = []) {
 /**
  * Build a transformation rules object from a section mapping
  */
-function buildTransformationRulesFromMapping(mappingFragments = []) {
+function buildTransformationRulesFromMapping(mappingRules = [], fragmentsRules = true) {
   const transformRules = JSON.parse(JSON.stringify(baseTransformRules));
+  let mapping = mappingRules;
 
   // TODO:  add support for fragments
-  const [frag1, frag2] = mappingFragments;
-  const { sections: mapping } = frag2 || frag1;
+  if (fragmentsRules) {
+    const [frag1, frag2] = mappingRules;
+    const { sections: fragmentMapping } = frag2 || frag1;
+    if (fragmentMapping) {
+      mapping = fragmentMapping;
+    }
+  }
   if (!mapping) {
     return transformRules;
   }
@@ -143,7 +149,7 @@ function buildTransformationRulesFromMapping(mappingFragments = []) {
         ...existingRules,
         type,
         selectors,
-        variants: variant === 'unset' ? undefined : variant.split(' '),
+        variants: variant === 'unset' || !variant.length ? undefined : variant.split(' '),
         params: { cells },
       };
       if (WebImporter.CellUtils.isEmpty(rule.params.cells)) {

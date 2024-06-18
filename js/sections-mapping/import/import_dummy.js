@@ -51,13 +51,12 @@ export default {
   //       }
   //     }
   //   });
-    
+
   // },
 
   transform: async ({ document, params }) => {
 
-    // // console.log(parsers?);
-    // debugger;
+    // console.log(parsers?);
 
     const main = document.body;
 

@@ -49,7 +49,7 @@ export function getSectionsMappingData(url) {
  */
 
 // init sections report
-const IMPORT_REPORT = {};
+// const IMPORT_REPORT = {};
 
 /**
  * main
@@ -105,7 +105,6 @@ export default {
     /**
      * get sections mapping data
      */
-
     const mapping = getSectionsMappingData(params.originalURL);
     if (!mapping) {
       throw new Error('No sections mapping data found, aborting');

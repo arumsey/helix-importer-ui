@@ -54,6 +54,7 @@ export default class Transformer {
     // phase 2: DOM removal - start
     processRemoval(main, removeStart);
 
+    const processedElements = [];
     // phase 3: block creation
     blocks.forEach((blockCfg) => {
       const {
@@ -63,9 +64,11 @@ export default class Transformer {
       const validSelectors = selectors
         ? selectors.filter(CellUtils.isValidCSSSelector)
         : [];
-      const elements = validSelectors.length
+      const rawElements = validSelectors.length
         ? selectors.reduce((acc, selector) => [...acc, ...main.querySelectorAll(selector)], [])
         : [main];
+      const elements = rawElements.filter((el) => !processedElements.includes(el));
+      processedElements.push(elements);
       // process every element for this block
       elements.forEach((element) => {
         // add params to source
