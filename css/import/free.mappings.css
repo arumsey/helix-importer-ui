@@ -8,7 +8,7 @@
   }
 
   /* Show 'up' button, or color swatch. */
-  & .row:first-child div:has(.move-up) {
+  & .row:first-child .mapping-inputs div:has(.move-up) {
     display: none;
   }
 
@@ -17,7 +17,13 @@
     visibility: collapse;
   }
 
-  & .row {
+  & .row.header,
+  & .row .mapping-selector {
+    margin-left: 50px;
+  }
+
+  & .row.header,
+  & .row .mapping-inputs {
     padding: 0.5rem;
     display: flex;
     flex-direction: row;
@@ -63,5 +69,9 @@
     & .mapping-dom-variants {
       min-width: 240px;
     }
+  }
+
+  & .mapping-dom-selector {
+    width: 100%;
   }
 }

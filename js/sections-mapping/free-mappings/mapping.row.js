@@ -56,31 +56,29 @@ function handleRowData(row, args) {
 function handleMouseOverMappingRow(e, mouseIsOver) {
   const row = e.target.closest('.row')
   const frameForEvent = getContentFrame();
-  const target = e.target.nodeName === 'DIV' ? e.target : e.target.closest('.row');
-  if (target.nodeName === 'DIV') {
-    const { xpath } = handleRowData(target);
-    const div = getElementByXpath(frameForEvent.contentDocument, xpath);
-    if (!div) {
-      return;
-    }
+  // const target = e.target.classList.contains(row) ? e.target : e.target.closest('.row');
+  // if (target.nodeName === 'DIV') {
+  const { xpath } = handleRowData(row);
+  const previewTarget = getElementByXpath(frameForEvent.contentDocument, xpath);
+  if (previewTarget) {
     let mappingColor = DEFAULT_COLORS[0];
-    const colorSwatch = target.querySelector('.mapping-color');
+    const colorSwatch = row.querySelector('.mapping-color');
     if (colorSwatch) {
       mappingColor = colorSwatch.style.backgroundColor;
     }
     const original = originalStyles.find((os) => os.xpath === xpath);
     if (mouseIsOver) {
-      div.scrollIntoViewIfNeeded({ behavior: 'smooth' });
+      previewTarget.scrollIntoViewIfNeeded({ behavior: 'smooth' });
       if (!original) {
         originalStyles.push({
-          style: div.style,
+          style: previewTarget.style,
           xpath,
         });
       }
       // Highlight the box by emphasising the border for a second.
-      div.style = `${div.style};border: 10px ${mappingColor} solid !important;`;
+      previewTarget.style = `${previewTarget.style};border: 10px ${mappingColor} solid !important;`;
     } else if (original) {
-      div.style = original.style;
+      previewTarget.style = original.style;
     }
   }
 
@@ -179,9 +177,6 @@ function setSelectorHelperText(row, selector, frame) {
   if (help !== null) {
     help.innerText = helperText;
   }
-
-  row.querySelector('.mapping-selector-group').setAttribute('title',
-    selector.replaceAll(' ', '\n').replaceAll('>\n', '> '));
 }
 
 function onMappingChange(e, property) {
@@ -334,26 +329,13 @@ function createMappingRow(section, idx = 1) {
   });
   moveUpBtnContainer.append(moveUpBtn);
 
-  const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
-  const tooltip = createElement('sp-tooltip', { 'self-managed': true, 'placement': 'top' }, title);
-  const selectorGroup = createElement('div', { class: 'mapping-selector-group', title: `${title}` });
+  const selectorGroup = createElement('div', { class: 'mapping-selector-group' });
   const selectorTweaker = createElement('div');
   const precisionTweaker = getSelectorNumberField('Precision', 'precision', precision, 1);
   const offsetTweaker = getSelectorNumberField('Offset', 'offset', offset, 0);
-  selectorTweaker.append(precisionTweaker, offsetTweaker, tooltip);
+  selectorTweaker.append(precisionTweaker, offsetTweaker);
 
-  const domSelector = getSelectorTextField(
-    'mapping-dom-selector',
-    'Selector',
-    selector,
-    'selector',
-    false,
-    true,
-  );
-
-  const selectorDiv = createElement('div');
-  selectorDiv.appendChild(domSelector);
-  selectorGroup.append(selectorTweaker, selectorDiv, tooltip);
+  selectorGroup.append(selectorTweaker);
 
   const helpText = getSelectorHitText(frame, selector);
   if (helpText?.length) {
@@ -374,7 +356,24 @@ function createMappingRow(section, idx = 1) {
   const mappingPicker = getBlockPicker(section.id, section.mapping);
   const deleteBtn = getRowDeleteButton(getCurrentURL());
 
-  row.append(color, moveUpBtnContainer, selectorGroup, mappingPicker, variantsField, deleteBtn);
+  const domSelector = getSelectorTextField(
+    'mapping-dom-selector',
+    'Selector',
+    selector,
+    'selector',
+    false,
+    true,
+  );
+
+  const selectorDiv = createElement('div');
+  selectorDiv.appendChild(domSelector);
+
+  const rowInputs = createElement('div', { class: 'mapping-inputs'});
+  const rowSelector = createElement('div', { class: 'mapping-selector'});
+
+  rowInputs.append(color, moveUpBtnContainer, selectorGroup, mappingPicker, variantsField, deleteBtn, selectorDiv);
+  rowSelector.append(selectorDiv);
+  row.append(rowInputs, rowSelector);
 
   row.addEventListener('mousemove', (e) => handleMouseOverMappingRow(e, true));
   row.addEventListener('mouseout', (e) => handleMouseOverMappingRow(e, false));
