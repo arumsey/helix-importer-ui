@@ -171,7 +171,7 @@ function setSelectorHelperText(row, selector, frame) {
   // Manage warnings when the selector matches more than 1 element.
   let help = row.querySelector('sp-help-text');
   if (help === null && helperText.length > 0) {
-    const selectorField = row.querySelector('.mapping-dom-selector');
+    const selectorField = row.querySelector('.mapping-dom-precision');
     help = selectorField.parentElement.appendChild(
       createElement('sp-help-text', { slot: 'help-text' }),
     );
@@ -335,7 +335,7 @@ function createMappingRow(section, idx = 1) {
   moveUpBtnContainer.append(moveUpBtn);
 
   const title = selector.replaceAll(' ', '\n').replaceAll('>\n', '> ');
-  const tooltip = createElement('sp-tooltip', { 'self-managed': true }, title);
+  const tooltip = createElement('sp-tooltip', { 'self-managed': true, 'placement': 'top' }, title);
   const selectorGroup = createElement('div', { class: 'mapping-selector-group', title: `${title}` });
   const selectorTweaker = createElement('div');
   const precisionTweaker = getSelectorNumberField('Precision', 'precision', precision, 1);
@@ -349,12 +349,18 @@ function createMappingRow(section, idx = 1) {
     'selector',
     false,
     true,
-    getSelectorHitText(frame, selector),
   );
 
   const selectorDiv = createElement('div');
   selectorDiv.appendChild(domSelector);
   selectorGroup.append(selectorTweaker, selectorDiv, tooltip);
+
+  const helpText = getSelectorHitText(frame, selector);
+  if (helpText?.length) {
+    selectorGroup.append(
+      createElement('sp-help-text', { slot: 'help-text' }, helpText)
+    );
+  }
 
   const variantsField = getSelectorTextField(
     'mapping-dom-variants',

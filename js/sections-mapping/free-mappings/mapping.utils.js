@@ -111,25 +111,22 @@ function getFreeSelectionsMapping(url) {
  * Write (or overwrite) the Mapping for the provided (base?) URL to the local-storage while
  * maintaining the mappings for other URLs.
  * @param url The current URL
- * @param mapping the mapping to store (component id to block name)
+ * @param mappings the mappings to store (component id to block name)
  * @returns void
  */
-function saveFreeSelectionsMapping(url, mapping) {
+function saveFreeSelectionsMapping(url, mappings) {
   // Reset cache
   mappingDataCache = {};
-  if (mapping.variants.length === 0) {
-    mapping.variants = undefined;
-  }
 
   // Arrange mappings so 'move-up' will work correctly.
-  const arrangedMappings = arrangeMappings(mapping);
+  const arrangedMappings = arrangeMappings(mappings);
 
   try {
     let allMappings = JSON.parse(localStorage.getItem('helix-importer-sections-mapping'));
     if (allMappings && Array.isArray(allMappings)) {
       const index = allMappings.findIndex((sm) => sm.url === url && isFreeMappingType(sm));
       if (index >= 0) {
-        if (mapping.length === 0) {
+        if (mappings.length === 0) {
           allMappings.splice(index, 1);
         } else {
           allMappings[index].mapping = arrangedMappings;
