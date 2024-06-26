@@ -55,6 +55,13 @@ function buildSelector(mapping, basePath) {
   return undefined;
 }
 
+function buildExcluder(mapping) {
+  if (mapping.attribute) {
+    return (({ attribute, property, value }) => ({ attribute, property, value }))(mapping);
+  }
+  return undefined;
+}
+
 /**
  * Build a block cells object from a list of mappings.
  * @param mappingList
@@ -116,9 +123,13 @@ function buildTransformationRulesFromMapping(mappingRules = []) {
   transformRules.root = rootMapping ? buildSelector(rootMapping, XPATH_BODY) : undefined;
 
   // add clean up sections
-  transformRules.cleanup.start = mapping
-    .filter((m) => m.mapping === 'exclude')
+  const cleanUpSelector = mapping
+    .filter((m) => m.mapping === 'exclude' && m.selector)
     .map((m) => buildSelector(m, XPATH_BODY));
+  const cleanUpExcluders = mapping
+    .filter((m) => m.mapping === 'exclude' && m.attribute)
+    .map((m) => buildExcluder(m));
+  transformRules.cleanup.start = [...cleanUpSelector, ...cleanUpExcluders];
 
   // process blocks
   const blockMapping = mapping

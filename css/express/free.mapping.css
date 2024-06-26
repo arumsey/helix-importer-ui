@@ -8,6 +8,7 @@
   & #sm-free-mappings-editor {
     overflow: auto;
     background-color: var(--spectrum-alias-background-color-secondary);
+    height: calc(100vh - 19rem);
   }
 
   & .row.highlight {

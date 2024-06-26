@@ -11,10 +11,23 @@ const IGNORE_ELEMENTS = [
   'iframe',
 ];
 
+function matchByAttribute(el, attribute, value) {
+  // 'Class' is a special case (aka className, classList)
+  if (attribute === 'class') {
+    try {
+      return el.className.includes(value);
+    } catch (e) {
+      return [...el.classList].join(' ').includes(value);
+    }
+  }
+  return el[attribute].includes(value);
+}
+
 function processRemoval(main, selectors = []) {
+  const nonStrings = selectors.filter((selector) => !CellUtils.isTextSelector(selector) && typeof selector !== 'object');
   WebImporter.DOMUtils.remove(
     main,
-    selectors.filter((selector) => !CellUtils.isTextSelector(selector)),
+    nonStrings,
   );
   const textSelectors = selectors.filter(CellUtils.isTextSelector);
   textSelectors.forEach((selector) => {
@@ -24,6 +37,22 @@ function processRemoval(main, selectors = []) {
       .filter((node) => node.nodeType === Node.TEXT_NODE
         && node.textContent.trim() === searchValue)
       .forEach((node) => node.remove());
+  });
+
+  selectors.filter((selector) => typeof selector === 'object').forEach((cfg) => {
+    const { attribute, property, value } = cfg;
+    const all = [...main.querySelectorAll(`[${attribute}]`)];
+    if (property?.length && property !== '-') {
+      all.filter((el) => el[attribute][property].includes(value))
+        .forEach((el) => {
+          el.remove();
+        });
+    } else {
+      all.filter((el) => matchByAttribute(el, attribute, value))
+        .forEach((el) => {
+          el.remove();
+        });
+    }
   });
 }
 

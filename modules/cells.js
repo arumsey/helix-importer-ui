@@ -220,7 +220,8 @@ export default class CellUtils {
   }
 
   static isTextSelector(selector = '') {
-    return selector.includes(PSEUDO_TEXT_SELECTOR) || false;
+    const isString = (typeof selector === 'string' || selector instanceof String);
+    return isString && selector.includes(PSEUDO_TEXT_SELECTOR);
   }
 
   static getSearchSelector(selector = '') {
