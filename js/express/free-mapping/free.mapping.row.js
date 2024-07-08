@@ -27,7 +27,7 @@ const FREE_MAPPING_EDITOR_SECTIONS = document.getElementById('sm-free-mappings-e
 const FREE_MAPPING_EDITOR_HEADER = document.getElementById('sm-free-mappings-heading');
 const CLICK_CONTAINERS = ['DIV', 'SECTION', 'HEADER', 'BODY', 'A'];
 
-const originalStyles = [];
+const originalStyles = { };
 
 function handleRowData(row, args) {
   if (!row?.dataset) {
@@ -51,33 +51,38 @@ function handleRowData(row, args) {
   return newArgs;
 }
 
-function handleMouseOverMappingRow(e, mouseIsOver) {
-  const row = e.target.closest('.row');
-  const frameForEvent = getContentFrame();
-  const { xpath } = handleRowData(row);
-  if (!xpath) {
+function updatePreviewShowcase(row, selector, mouseIsOver) {
+  if (!selector) {
     return;
   }
-  const previewTarget = getElementByXpath(frameForEvent.contentDocument, xpath);
-  if (previewTarget) {
+  const frameForEvent = getContentFrame();
+  const { id } = handleRowData(row);
+
+  // const previewTarget = getElementByXpath(frameForEvent.contentDocument, xpath);
+  const previewTargets = [...frameForEvent.contentDocument.querySelectorAll(selector)];
+  if (previewTargets && previewTargets.length > 0) {
     let mappingColor = DEFAULT_COLORS[0];
     const colorSwatch = row.querySelector('.mapping-color');
     if (colorSwatch) {
       mappingColor = colorSwatch.style.backgroundColor;
     }
-    const original = originalStyles.find((os) => os.xpath === xpath);
+    const original = originalStyles[id];
     if (mouseIsOver) {
-      previewTarget.scrollIntoViewIfNeeded({ behavior: 'smooth' });
+      // Only scroll into view if there is only one target so the user can see all the hits.
+      if (previewTargets.length === 1) {
+        previewTargets[0].scrollIntoViewIfNeeded({ behavior: 'smooth' });
+      }
       if (!original) {
-        originalStyles.push({
-          style: previewTarget.style,
-          xpath,
-        });
+        originalStyles[id] = previewTargets[0].style;
       }
       // Highlight the box by emphasising the border for a second.
-      previewTarget.style = `${previewTarget.style};border: 10px ${mappingColor} solid !important;`;
+      previewTargets.forEach((pt) => {
+        pt.style = `${pt.style};border: 10px ${mappingColor} solid !important;`;
+      });
     } else if (original) {
-      previewTarget.style = original.style;
+      previewTargets.forEach((pt) => {
+        pt.style = originalStyles[id];
+      });
     }
   }
 
@@ -86,6 +91,15 @@ function handleMouseOverMappingRow(e, mouseIsOver) {
   } else {
     row.querySelector('.mapping-dom-selector').classList.add('hidden');
   }
+}
+
+function handleMouseOverMappingRow(e, mouseIsOver) {
+  if (!e.target) {
+    return;
+  }
+  const row = e.target.closest('.row');
+  const { selector } = handleRowData(row);
+  updatePreviewShowcase(row, selector, mouseIsOver);
 }
 
 const getSelectorHitText = (frame, selector) => {
@@ -187,6 +201,7 @@ function onMappingChange(e, property) {
     const prev = {};
     const row = e.target.closest('.row');
     const args = handleRowData(row);
+    const previousSelector = args.selector;
     prev[property] = args[property];
     args[property] = !e.target.value || e.target.value.length === 0 ? undefined : e.target.value;
     const {
@@ -207,10 +222,16 @@ function onMappingChange(e, property) {
       row.querySelector('.mapping-dom-offset').setAttribute('max', `${parseInt(precision, 10) - 1}`);
       selectorFld.value = deepSelector;
       args.selector = deepSelector;
-      setSelectorHelperText(row, deepSelector, frame);
     } else if (property === 'selector') {
       args.selector = selector;
-      setSelectorHelperText(row, selector, frame);
+    }
+
+    // If anything change with regard to the selector, remove any previous showcasing, and
+    // show the new showcasing.
+    if (['precision', 'offset', 'selector'].includes(property)) {
+      setSelectorHelperText(row, args.selector, frame);
+      updatePreviewShowcase(row, previousSelector, false);
+      setTimeout(() => row.dispatchEvent(new Event('mousemove')), 1);
     }
 
     saveMappingChange(sectionId, args);
@@ -287,18 +308,18 @@ function getBlockPicker(id, value = 'unset') {
   return blockPickerDiv;
 }
 
-function createMappingRow(section, idx = 1) {
+function createMappingRow(newMapping, idx = 1) {
   const frame = getContentFrame();
   const row = document.createElement('div');
   row.classList.add('row');
   const args = handleRowData(row, {
     idx,
-    sectionId: section.id,
-    xpath: section.xpath,
-    selector: section.selector ?? '',
-    variants: section.variants ?? undefined,
-    precision: section.precision ?? 1,
-    offset: section.offset ?? 0,
+    sectionId: newMapping.id,
+    xpath: newMapping.xpath,
+    selector: newMapping.selector ?? '',
+    variants: newMapping.variants ?? undefined,
+    precision: newMapping.precision ?? 1,
+    offset: newMapping.offset ?? 0,
     customId: undefined,
   });
   const {
@@ -306,7 +327,7 @@ function createMappingRow(section, idx = 1) {
   } = args;
 
   row.dataset.mapping = JSON.stringify(args);
-  const color = createElement('div', { class: 'mapping-color', style: `background-color: ${section.color || 'white'}` });
+  const color = createElement('div', { class: 'mapping-color', style: `background-color: ${newMapping.color || 'white'}` });
   const moveUpBtnContainer = document.createElement('div');
   const moveUpBtn = createElement(
     'sp-button',
@@ -314,7 +335,7 @@ function createMappingRow(section, idx = 1) {
       variant: 'primary',
       'icon-only': '',
       title: 'Move this item up one row',
-      style: `background-color: ${section.color}`,
+      style: `background-color: ${newMapping.color}`,
       class: 'move-up',
     },
   );
@@ -369,7 +390,7 @@ function createMappingRow(section, idx = 1) {
     false,
   );
 
-  const mappingPicker = getBlockPicker(section.id, section.mapping);
+  const mappingPicker = getBlockPicker(newMapping.id, newMapping.mapping);
   const deleteBtn = getRowDeleteButton(getCurrentURL());
 
   const domSelector = getSelectorTextField(

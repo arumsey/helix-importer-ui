@@ -9,6 +9,19 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+import { DEFAULT_COLORS } from '../../shared/color.js';
+import { SPTABS } from '../../shared/ui.js';
+import {
+  getXPath,
+  getCurrentURL,
+} from '../../shared/utils.js';
+import { initializeMetadata } from '../customization/metadata/metadata.js';
+import {
+  buildSelector,
+  getFreeSelectionsMapping,
+  isDefaultMapping,
+  saveFreeSelectionsMapping,
+} from './free.mapping.utils.js';
 import {
   CLICK_CONTAINERS,
   createMappingRow,
@@ -16,21 +29,12 @@ import {
   FREE_MAPPING_EDITOR_SECTIONS,
   setSelectorHelperText, FREE_MAPPING_EDITOR_HEADER,
 } from './free.mapping.row.js';
-import {
-  buildSelector,
-  getFreeSelectionsMapping,
-  isDefaultMapping,
-  saveFreeSelectionsMapping,
-} from './free.mapping.utils.js';
-import { initializeMetadata } from '../customization/metadata/metadata.js';
-import { DEFAULT_COLORS } from '../../shared/color.js';
-import { SPTABS } from '../../shared/ui.js';
-import {
-  getXPath,
-  getCurrentURL,
-} from '../../shared/utils.js';
+
+import { autoMap } from './auto.mapping.js';
 
 const TRUST_NODE_ID = true;
+
+const AUTO_MAP_BUTTON = document.getElementById('import-automap-button');
 
 function getMappingRowFromTarget(target) {
   const rows = [...FREE_MAPPING_EDITOR_SECTIONS.querySelectorAll('.row')];
@@ -180,6 +184,12 @@ const preparePagePreview = async (src, frame) => {
     });
 
   initializeMetadata(originalURL);
+
+  if (mappingUIData.length === 0) {
+    AUTO_MAP_BUTTON.disabled = false;
+  }
+  AUTO_MAP_BUTTON.removeEventListener('click', autoMap);
+  AUTO_MAP_BUTTON.addEventListener('click', autoMap);
 };
 
 export {
