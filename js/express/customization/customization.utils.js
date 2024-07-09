@@ -40,16 +40,17 @@ const addBlankRowIfRequired = (viewDiv, addButton) => {
   }
 };
 
-const mappingAlreadyExists = (mappingData, mapping, view) => mappingData.some((md) => {
-  if (md.mapping === view && md.id !== mapping.id) {
-    let duplicate = true;
-    customizedFields[view].forEach((attr) => {
-      duplicate = duplicate && md[attr] && md[attr] === mapping[attr];
-    });
-    return duplicate;
-  }
-  return false;
-});
+/**
+ * See if a mapping already exists where the mapping is the same as the view and all the attributes
+ *  match.
+ * @param mappingData
+ * @param mapping
+ * @param view
+ * @returns {*}
+ */
+const mappingAlreadyExists = (mappingData, mapping, view) => mappingData
+  .filter((md) => md.mapping === view && md.id !== mapping.id)
+  .some((md) => customizedFields[view].every((attr) => md[attr] && md[attr] === mapping[attr]));
 
 /**
  * Either find the matching mapping and update it, create a brand new one or indicate that there
