@@ -139,6 +139,7 @@
                                     </div>
                                     <sp-tabs selected="metadata-editor-view" id="customization-editor-tabs" class="hidden">
                                         <sp-tab label="Metadata" value="metadata-editor-view" id="first-customization-tab"></sp-tab>
+                                        <sp-tab label="Exclusions" value="exclusions-editor-view"></sp-tab>
                                         <sp-tab-panel value="metadata-editor-view">
                                             <sp-theme color="light" scale="medium">
                                                 <div id="metadata-editor" class="customization-editor">
@@ -160,6 +161,45 @@
                                                             Add a metadata row
                                                         </sp-tooltip>
                                                     </sp-button>
+                                                </div>
+                                            </sp-theme>
+                                        </sp-tab-panel>
+                                        <sp-tab-panel value="exclusions-editor-view">
+                                            <sp-theme color="light" scale="medium">
+                                                <div id="exclusions-editor" class="customization-editor">
+                                                    <div class="heading">
+                                                        <h1>Excluded Mappings</h1>
+                                                        <p>Some site components are not clickable. Add 'exclude' conditions for them here.</p>
+                                                        <p>Initially, specify the element's attribute name, then a property name if the attribute is an object (use '-' if it is not an object) and finally the string that the attribute/property should contain.</p>
+                                                    </div>
+                                                    <div id="exclusions-editor-rows">
+                                                        <div class="row header">
+                                                            <h2>Attribute</h2>
+                                                            <h2>Property</h2>
+                                                            <h2>Includes</h2>
+                                                            <div class="icon-aligner"></div>
+                                                        </div>
+                                                    </div>
+                                                    <sp-button-group id="exclusions-editor-buttons">
+                                                        <sp-button id="exclusions-editor-add" variant="accent" icon-only>
+                                                            <sp-icon-add-circle slot="icon"></sp-icon-add-circle>
+                                                            <sp-tooltip self-managed>
+                                                                Add an exclusion row
+                                                            </sp-tooltip>
+                                                        </sp-button>
+                                                        <sp-button id="exclusions-display-none" variant="accent" data-exclusion-selector="{&quot;attribute&quot;:&quot;style&quot;,&quot;property&quot;:&quot;display&quot;,&quot;value&quot;:&quot;none&quot;}">
+                                                            No Display
+                                                            <sp-tooltip self-managed>
+                                                                Add a mapping to exclude all elements with a display:none style.
+                                                            </sp-tooltip>
+                                                        </sp-button>
+                                                        <sp-button id="exclusions-no-modals" variant="accent" data-exclusion-selector="{&quot;attribute&quot;:&quot;class&quot;,&quot;property&quot;:&quot;-&quot;,&quot;value&quot;:&quot;modal&quot;}">
+                                                           Modal
+                                                            <sp-tooltip self-managed>
+                                                                Add a template to exclude all modal with a class containing 'modal'. Edit to match your importing needs.
+                                                            </sp-tooltip>
+                                                        </sp-button>
+                                                    </sp-button-group>
                                                 </div>
                                             </sp-theme>
                                         </sp-tab-panel>

@@ -18,9 +18,9 @@ import {
 } from '../free-mapping/free.mapping.utils.js';
 import { getRowDeleteButton, handleRowData } from '../free-mapping/free.mapping.row.js';
 
-const customizedFields = {
-  metadata: ['name', 'value', 'condition'],
-};
+const customizedFields = {};
+
+const CUSTOM_MAPPING_PREFIX = 'custom-';
 
 /**
  * Get the current URL.  User can change from time to time.
@@ -41,6 +41,18 @@ const addBlankRowIfRequired = (viewDiv, addButton) => {
 };
 
 /**
+ * See if a mapping already exists where the mapping is the same as the view and all the attributes
+ *  match.
+ * @param mappingData
+ * @param mapping
+ * @param view
+ * @returns {*}
+ */
+const mappingAlreadyExists = (mappingData, mapping, view) => mappingData
+  .filter((md) => md.mapping === view && md.id !== mapping.id)
+  .some((md) => customizedFields[view].every((attr) => md[attr] && md[attr] === mapping[attr]));
+
+/**
  * Either find the matching mapping and update it, create a brand new one or indicate that there
  * is a duplicate.
  * @param event
@@ -57,23 +69,11 @@ const updateCustomizedMapping = (event, view) => {
   const row = event.target.parentElement;
   const { customId } = handleRowData(row);
   const mItem = mappingData.find((m) => m.id === customId) ?? {};
-  const fields = customizedFields[view];
-  fields.forEach((attr) => {
+  customizedFields[view].forEach((attr) => {
     mItem[attr] = row.querySelector(`.${view}-row-${attr}`).value;
   });
 
-  // Check for duplicate
-  const dup = mappingData.some((md) => {
-    if (md.mapping === view && md.id !== customId) {
-      let duplicate = true;
-      fields.forEach((attr) => {
-        duplicate = duplicate && md[attr] === mItem[attr];
-      });
-      return duplicate;
-    }
-    return false;
-  });
-  if (dup) {
+  if (mappingAlreadyExists(mappingData, mItem, view)) {
     alert.error('This value already exists. The change was not saved.');
     return;
   }
@@ -100,47 +100,23 @@ const getCustomizationRow = (url, mapping, view) => {
   const divProps = { class: 'row' };
   const customizationRow = createElement('div', divProps);
 
-  const fields = customizedFields[view];
-  if (fields.includes('name')) {
-    const nameField = createElement(
+  customizedFields[view].forEach((field) => {
+    const props = {
+      class: `${view}-row-${field}`,
+      placeHolder: `Enter ${view} ${field}`,
+      value: mapping[field] ?? '',
+    };
+    const nextField = createElement(
       'sp-textfield',
-      {
-        class: `${view}-row-name`,
-        placeHolder: `Enter ${view} name`,
-        value: mapping.name ?? '',
-      },
+      props,
     );
-    customizationRow.append(nameField);
-    nameField.addEventListener('change', (e) => {
+    customizationRow.append(nextField);
+    nextField.addEventListener('change', (e) => {
       updateCustomizedMapping(e, view);
     });
-  }
-  const valueField = createElement(
-    'sp-textfield',
-    {
-      class: `${view}-row-value`,
-      placeHolder: `Enter ${view} value`,
-      value: mapping.value ?? '',
-    },
-  );
-  const urlField = createElement(
-    'sp-textfield',
-    {
-      class: `${view}-row-condition`,
-      placeHolder: 'Enter condition',
-      value: mapping.condition ?? '*',
-    },
-  );
-
-  const delButton = getRowDeleteButton(url);
-  customizationRow.append(valueField, urlField, delButton);
-  valueField.addEventListener('change', (e) => {
-    updateCustomizedMapping(e, view);
-  });
-  urlField.addEventListener('change', (e) => {
-    updateCustomizedMapping(e, view);
   });
 
+  customizationRow.append(getRowDeleteButton(url));
   handleRowData(customizationRow, { customId: mapping.id });
 
   return customizationRow;
@@ -150,18 +126,25 @@ const getCustomizationRow = (url, mapping, view) => {
  * After the mappings are read in, and the detection has been run, set up the custom
  * mappings in the provided tab.
  * @param importURL
- * @param blockType (currently, just 'metadata' for now)
+ * @param blockType
  * @param viewDiv
  * @param viewSection
- * @param addButton
+ * @param fields - names of properties that make up this type of mapping
+ * @param addButtons
  */
 const initializeCustomizationView = (
   importURL,
   blockType,
   viewDiv,
   viewSection,
-  addButton,
+  fields,
+  addButtons = [],
 ) => {
+  if (!fields || fields.length === 0) {
+    return;
+  }
+
+  // Initialize view - hide what isn't hidden, show what is hidden.
   const mappingData = getFreeSelectionsMapping(importURL);
   if (document.getElementById('sm-customization-details')) {
     document.getElementById('sm-customization-details').remove();
@@ -171,7 +154,11 @@ const initializeCustomizationView = (
     he.classList.remove('hidden');
   });
   viewDiv.querySelectorAll('div.row:not(.header)').forEach((mr) => mr.remove());
-  addButton?.addEventListener('click', () => {
+
+  customizedFields[blockType] = fields;
+
+  // Add any buttons to let the user add another row.
+  addButtons.forEach((b) => b.addEventListener('click', (e) => {
     if (!viewDiv) {
       return;
     }
@@ -182,24 +169,42 @@ const initializeCustomizationView = (
       const emptyTextField = !!textFields && textFields.find((tf) => tf.value.trim() === '');
       if (emptyTextField) {
         emptyTextField.focus();
-        alert.warning(`Please complete all ${blockType} mappings already present.`);
+        alert.warning(`Please complete all '${blockType}' mappings already present.`);
         return;
       }
     }
 
+    const button = e.target;
+    const excludeSelector = JSON.parse(button.dataset.exclusionSelector ?? '{}');
+    const mapping = {
+      id: `${CUSTOM_MAPPING_PREFIX}${blockType}-${Date.now()}-${Math.floor(Math.random() * (1000)) + 1}`,
+      mapping: blockType,
+      ...excludeSelector,
+    };
+
+    const clickMappingData = getFreeSelectionsMapping(importURL);
+    if (mappingAlreadyExists(clickMappingData, mapping, blockType)) {
+      alert.error('This value already exists. The change was not saved.');
+      return;
+    }
+
     // Add a new customized row.
-    const newId = `custom-${Date.now()}-${Math.floor(Math.random() * (1000)) + 1}`;
     viewSection.appendChild(
       getCustomizationRow(
         getCurrentURL(),
-        { id: newId },
+        mapping,
         blockType,
       ),
     );
-  });
+
+    mappingData.push(mapping);
+    saveFreeSelectionsMapping(getCurrentURL(), mappingData);
+  }));
 
   // Display existing customized values
-  const customizedMappings = mappingData.filter((md) => md.mapping === blockType);
+  const customizedMappings = mappingData.filter(
+    (md) => md.mapping === blockType && md.id.startsWith(CUSTOM_MAPPING_PREFIX),
+  );
   if (customizedMappings.length > 0) {
     customizedMappings.forEach((mapping) => {
       const row = getCustomizationRow(
@@ -211,17 +216,15 @@ const initializeCustomizationView = (
     });
   }
 
-  // Add a blank row when activated - ensure a blank one doesn't already exist.
-  // document.getElementById('customization-trigger')
-  //   .addEventListener('click', () => addBlankRowIfRequired(viewDiv, addButton));
-
   // Select the first tab if one isn't already selected - second rank tabs do not
   // seem to be pre-selected.
   const tabTrigger = document.getElementById('customization-trigger');
   const tabs = [...document.getElementById('customization-editor-tabs').querySelectorAll('sp-tab')];
   if (!tabTrigger.selected || !tabs.find((tab) => tab.selected)) {
     document.getElementById('first-customization-tab').click();
-    addBlankRowIfRequired(viewDiv, addButton);
+    if (addButtons.length === 1) {
+      addBlankRowIfRequired(viewDiv, addButtons[0]);
+    }
   }
 };
 

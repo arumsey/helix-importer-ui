@@ -11,27 +11,35 @@
  */
 import { initializeCustomizationView } from '../customization.utils.js';
 
-const METADATA_EDITOR = document.getElementById('metadata-editor');
-const METADATA_EDITOR_SECTIONS = document.getElementById('metadata-editor-rows');
-const ADD_METADATA_BUTTON = document.getElementById('metadata-editor-add');
+const EXCLUSIONS_EDITOR = document.getElementById('exclusions-editor');
+const EXCLUSIONS_EDITOR_SECTIONS = document.getElementById('exclusions-editor-rows');
+const ADD_EXCLUSIONS_BUTTONS = [...document.getElementById('exclusions-editor-buttons').querySelectorAll('sp-button')];
+// export const INVISIBLE_CONDITIONS = [
+//   '[style*="display: none"]',
+//   '[style*="display:none"]',
+//   '[style*="display:none !important"]',
+//   '[style*="display: none !important"]',
+//   '[style*="opacity: 0"]',
+//   '[style*="visibility: hidden"]',
+// ];
 
 /**
- * After the mappings are read in, and the detection has been run, set up the metadata
+ * After the mappings are read in, and the detection has been run, set up the exclusions
  * mappings in the customization tab.
  * @param importURL
  */
-const initializeMetadata = (importURL) => {
+const initializeExclusions = (importURL) => {
   initializeCustomizationView(
     importURL,
-    'metadata',
-    METADATA_EDITOR,
-    METADATA_EDITOR_SECTIONS,
-    ['name', 'value', 'condition'],
-    [ADD_METADATA_BUTTON],
+    'exclude',
+    EXCLUSIONS_EDITOR,
+    EXCLUSIONS_EDITOR_SECTIONS,
+    ['attribute', 'property', 'value'],
+    ADD_EXCLUSIONS_BUTTONS,
   );
 };
 
 export {
   // eslint-disable-next-line import/prefer-default-export
-  initializeMetadata,
+  initializeExclusions,
 };

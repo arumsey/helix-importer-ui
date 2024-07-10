@@ -29,6 +29,7 @@ import {
   getXPath,
   getCurrentURL,
 } from '../../shared/utils.js';
+import { initializeExclusions } from '../customization/exclusions/exclusions.js';
 
 const TRUST_NODE_ID = true;
 
@@ -180,6 +181,7 @@ const preparePagePreview = async (src, frame) => {
     });
 
   initializeMetadata(originalURL);
+  initializeExclusions(originalURL);
 };
 
 export {
