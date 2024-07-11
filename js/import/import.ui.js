@@ -468,6 +468,7 @@ const attachListeners = () => {
     const urlsArray = config.fields[field].split('\n').reverse().filter((u) => u.trim() !== '');
     importStatus.total = urlsArray.length;
     importStatus.startTime = Date.now();
+
     const processNext = async () => {
       if (urlsArray.length > 0) {
         const url = urlsArray.pop();
@@ -605,6 +606,8 @@ const attachListeners = () => {
         toggleLoadingButton(IMPORT_BUTTON);
       }
     };
+
+    // TODO: Add branch to use importer service
     processNext();
   }));
 
