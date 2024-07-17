@@ -16,6 +16,7 @@ import { asyncForEach } from '../shared/utils.js';
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
+import ServiceImporter from '../shared/serviceimporter.js';
 
 const PARENT_SELECTOR = '.import';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -35,14 +36,17 @@ const MD_PREVIEW_PANEL = document.getElementById('import-markdown-preview');
 const SPTABS = document.querySelector(`${PARENT_SELECTOR} sp-tabs`);
 
 const DOWNLOAD_IMPORT_REPORT_BUTTON = document.getElementById('import-downloadImportReport');
+const DOWNLOAD_IMPORT_CONTENT_BUTTON = document.getElementById('import-downloadImportContent');
 
 const IS_BULK = document.querySelector('.import-bulk') !== null;
+const USE_IMPORT_SERVICE = document.querySelector('#import-use-service');
 const BULK_URLS_HEADING = document.querySelector('#import-result h2');
 const BULK_URLS_LIST = document.querySelector('#import-result ul');
 
 const IMPORT_FILE_PICKER_CONTAINER = document.getElementById('import-file-picker-container');
 
 const REPORT_FILENAME = 'import-report.xlsx';
+const CONTENT_FILENAME = 'import-content.zip';
 
 const ui = {};
 const config = {};
@@ -71,6 +75,62 @@ const setupUI = () => {
   ui.markdownPreview.innerHTML = WebImporter.md2html('Run an import to see some markdown.');
 
   SPTABS.selected = 'import-preview';
+};
+
+const buildImportPickerItems = (picker) => {
+  picker.textContent = '';
+  picker.removeAttribute('label');
+  picker.removeAttribute('value');
+  const jobCache = ServiceImporter.getJobs();
+  jobCache.forEach((job, index) => {
+    const { id, startTime } = job;
+    // pretty print end time
+    const startDate = new Date(startTime);
+    const item = document.createElement('sp-menu-item');
+    item.setAttribute('value', id);
+    item.textContent = startDate.toLocaleString();
+    if (index === jobCache.length - 1) {
+      item.setAttribute('selected', true);
+      picker.setAttribute('label', startDate.toLocaleString());
+      picker.setAttribute('value', id);
+    }
+    picker.appendChild(item);
+  });
+
+  if (jobCache.length === 0) {
+    picker.setAttribute('disabled', true);
+  } else {
+    picker.removeAttribute('disabled');
+  }
+};
+
+const setupBulkUI = () => {
+  if (config.fields['import-use-service']) {
+    document.querySelectorAll('#import-use-service ~ sp-field-group').forEach((el) => {
+      el.removeAttribute('hidden');
+    });
+  }
+
+  const container = document.createElement('div');
+  const label = document.createElement('sp-field-label');
+  label.setAttribute('for', 'import-job-picker');
+  label.setAttribute('size', 'm');
+  label.textContent = 'Import Job';
+
+  const picker = document.createElement('sp-picker');
+  picker.setAttribute('id', 'import-job-picker');
+  picker.setAttribute('size', 'm');
+  buildImportPickerItems(picker);
+
+  picker.addEventListener('change', (e) => {
+    const jobCache = ServiceImporter.getJobs();
+    const job = jobCache.find((j) => j.id === e.target.value);
+    config.service.init(job);
+  });
+
+  container.append(label, picker);
+
+  document.querySelector('#import-result').prepend(container);
 };
 
 const loadResult = ({ md, html: outputHTML }) => {
@@ -183,8 +243,74 @@ const updateImporterUI = (results, originalURL) => {
 };
 
 const clearResultPanel = () => {
-  BULK_URLS_LIST.textContent = '';
-  BULK_URLS_HEADING.textContent = 'Importing...';
+  if (BULK_URLS_LIST) {
+    BULK_URLS_LIST.textContent = '';
+  }
+  if (BULK_URLS_HEADING) {
+    BULK_URLS_HEADING.textContent = 'Importing...';
+  }
+};
+
+const updateServiceImporterUI = (job) => {
+  const {
+    duration, successCount, status, urlCount, endTime, baseURL,
+  } = job;
+
+  clearResultPanel();
+
+  const createListItem = (text, href, style) => {
+    const li = document.createElement('li');
+    if (href) {
+      const link = document.createElement('sp-link');
+      link.setAttribute('size', 'm');
+      link.setAttribute('target', '_blank');
+      link.setAttribute('href', href);
+      link.textContent = text;
+      li.append(link);
+    } else {
+      li.textContent = text;
+    }
+
+    let name = 'sp-icon-checkmark-circle';
+    let label = 'Success';
+    if (style === 'failure') {
+      name = 'sp-icon-alert';
+      label = 'Error';
+    }
+    const icon = document.createElement(name);
+    icon.setAttribute('label', label);
+    li.append(icon);
+
+    BULK_URLS_LIST.append(li);
+  };
+
+  const totalTime = duration / 1000;
+  let timeStr = `${totalTime}s`;
+  if (totalTime > 60) {
+    timeStr = `${Math.round(totalTime / 60)}m ${totalTime % 60}s`;
+    if (totalTime > 3600) {
+      timeStr = `${Math.round(totalTime / 3600)}h ${Math.round((totalTime % 3600) / 60)}m`;
+    }
+  }
+
+  const endDate = new Date(endTime);
+  const dateStr = endDate.toLocaleString();
+
+  if (status === 'RUNNING') {
+    BULK_URLS_HEADING.innerText = `Importing ${urlCount} URL${urlCount > 1 ? 's' : ''}...`;
+  }
+  if (status === 'COMPLETE') {
+    createListItem(`Base URL: ${baseURL}`);
+    createListItem(`Total URLs: ${urlCount}`);
+    createListItem(`Completed at: ${dateStr}`);
+    createListItem(`Elapsed time: ${timeStr}`);
+
+    BULK_URLS_HEADING.innerText = `Import Complete (${successCount} / ${urlCount}) - Elapsed time: ${timeStr}`;
+    DOWNLOAD_IMPORT_CONTENT_BUTTON.classList.remove('hidden');
+  }
+  if (status === 'FAILED') {
+    BULK_URLS_HEADING.innerText = 'Import Failed';
+  }
 };
 
 const initImportStatus = () => {
@@ -373,6 +499,13 @@ const createImporter = () => {
     poll: !IS_BULK,
     importFileURL: config.fields['import-file-url'],
   });
+  config.service = new ServiceImporter({
+    apiKey: config.fields['spacecat-api-key'],
+    importApiKey: config.fields['import-api-key'],
+  });
+  if (config.fields['spacecat-api-key'] && config.fields['import-api-key']) {
+    config.service.init();
+  }
 };
 
 const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`);
@@ -431,17 +564,25 @@ const attachListeners = () => {
     await postImportStep();
   });
 
-  IMPORT_BUTTON.addEventListener('click', (async () => {
+  config.service.addListener(async ({ job }) => {
+    updateServiceImporterUI(job);
+  });
+
+  IMPORT_BUTTON.addEventListener('click', async () => {
+    const useService = config.fields['import-use-service'];
+
     initImportStatus();
 
     if (IS_BULK) {
       clearResultPanel();
-      if (config.fields['import-show-preview']) {
+      if (!useService && config.fields['import-show-preview']) {
         PREVIEW_CONTAINER.classList.remove('hidden');
       } else {
         PREVIEW_CONTAINER.classList.add('hidden');
       }
-      DOWNLOAD_IMPORT_REPORT_BUTTON.classList.remove('hidden');
+      if (!useService) {
+        DOWNLOAD_IMPORT_REPORT_BUTTON.classList.remove('hidden');
+      }
     } else {
       DOWNLOAD_IMPORT_REPORT_BUTTON.classList.add('hidden');
       PREVIEW_CONTAINER.classList.remove('hidden');
@@ -450,7 +591,7 @@ const attachListeners = () => {
     disableProcessButtons();
     toggleLoadingButton(IMPORT_BUTTON);
     isSaveLocal = config.fields['import-local-docx'] || config.fields['import-local-html'] || config.fields['import-local-md'];
-    if (isSaveLocal && !dirHandle) {
+    if (isSaveLocal && !dirHandle && !useService) {
       try {
         dirHandle = await getDirectoryHandle();
         await dirHandle.requestPermission({
@@ -466,6 +607,7 @@ const attachListeners = () => {
 
     const field = IS_BULK ? 'import-urls' : 'import-url';
     const urlsArray = config.fields[field].split('\n').reverse().filter((u) => u.trim() !== '');
+    importStatus.urls = urlsArray;
     importStatus.total = urlsArray.length;
     importStatus.startTime = Date.now();
 
@@ -607,9 +749,31 @@ const attachListeners = () => {
       }
     };
 
-    // TODO: Add branch to use importer service
-    processNext();
-  }));
+    if (useService) {
+      await config.service.startJob(urlsArray, {
+        saveAsDocx: config.fields['import-local-docx'],
+        saveAsHtml: config.fields['import-local-html'],
+        saveAsMd: config.fields['import-local-md'],
+        enableJavascript: config.fields['import-enable-js'],
+        scrollToBottom: config.fields['import-scroll-to-bottom'],
+      });
+      enableProcessButtons();
+      toggleLoadingButton(IMPORT_BUTTON);
+      buildImportPickerItems(document.getElementById('import-job-picker'));
+    } else {
+      processNext();
+    }
+  });
+
+  USE_IMPORT_SERVICE?.addEventListener('change', (event) => {
+    document.querySelectorAll(`#${event.target.id} ~ sp-field-group`).forEach((el) => {
+      if (event.target.checked) {
+        el.removeAttribute('hidden');
+      } else {
+        el.setAttribute('hidden', '');
+      }
+    });
+  });
 
   IMPORTFILEURL_FIELD.addEventListener('change', async (event) => {
     if (config.importer) {
@@ -617,12 +781,21 @@ const attachListeners = () => {
     }
   });
 
-  DOWNLOAD_IMPORT_REPORT_BUTTON.addEventListener('click', (async () => {
+  DOWNLOAD_IMPORT_REPORT_BUTTON?.addEventListener('click', (async () => {
     const buffer = await getReport();
     const a = document.createElement('a');
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     a.setAttribute('href', URL.createObjectURL(blob));
     a.setAttribute('download', REPORT_FILENAME);
+    a.click();
+  }));
+
+  DOWNLOAD_IMPORT_CONTENT_BUTTON?.addEventListener('click', (async () => {
+    const link = await config.service.fetchResult();
+    const { downloadUrl } = link;
+    const a = document.createElement('a');
+    a.setAttribute('href', downloadUrl);
+    a.setAttribute('download', CONTENT_FILENAME);
     a.click();
   }));
 
@@ -643,7 +816,12 @@ const init = () => {
 
   createImporter();
 
-  if (!IS_BULK) setupUI();
+  if (IS_BULK) {
+    setupBulkUI();
+  } else {
+    setupUI();
+  }
+
   attachListeners();
 };
 

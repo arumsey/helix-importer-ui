@@ -76,9 +76,18 @@
                                         <sp-checkbox class="option-field" id="import-use-service">
                                             Use Import Service
                                         </sp-checkbox>
-
-                                        <sp-field-label for="import-api-key" required>API Key</sp-field-label>
-                                        <sp-textfield class="option-field" id="import-api-key"></sp-textfield>
+                                        <sp-field-group hidden>
+                                            <sp-field-label for="spacecat-api-key">API Key</sp-field-label>
+                                            <sp-textfield class="option-field" id="spacecat-api-key">
+                                                <sp-help-text slot="help-text">API key for accessing SpaceCat services.</sp-help-text>
+                                            </sp-textfield>
+                                        </sp-field-group>
+                                        <sp-field-group hidden>
+                                            <sp-field-label for="import-api-key">Import API Key</sp-field-label>
+                                            <sp-textfield class="option-field" id="import-api-key">
+                                                <sp-help-text slot="help-text">API key for accessing the SpaceCat import endpoint.</sp-help-text>
+                                            </sp-textfield>
+                                        </sp-field-group>
 
                                         <sp-field-label for="import-custom-headers">Custom headers</sp-field-label>
                                         <sp-textfield class="option-field" id="import-custom-headers" multiline placeholder="Define your custom headers as a JSON object with key/value (header name/header value)"></sp-textfield>
@@ -104,6 +113,7 @@
                         </div>
                         <sp-button-group>
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
+                            <sp-button id="import-downloadImportContent" class="hidden">Download imported content</sp-button>
                         </sp-button-group>
                     </div>
                 </div>

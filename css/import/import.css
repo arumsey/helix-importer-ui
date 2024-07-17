@@ -170,7 +170,7 @@
   width: 100%;
 }
 
-.import #import-result ul {
+.import #import-result:not(:has(#import-job-picker)) ul {
   height: calc(100vh - 250px);
   overflow-y: auto;
 }
@@ -192,4 +192,8 @@
 
 .import #import-result sp-icon-alert {
   color: rgb(215 25 19);
+}
+
+.import #import-result div:has(#import-job-picker) {
+  margin-bottom: 12px;
 }
