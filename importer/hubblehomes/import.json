@@ -1,0 +1,28 @@
+{
+  "cleanup": {
+    "start": [
+      ".navholder",
+      ".container .subfooter",
+      ".footerrow ",
+      ".container .breadcrumb"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "metadata",
+      "insertMode": "append"
+    },
+    {
+      "type": "carousel",
+      "selectors": [
+        ".homesearchmapwrapper"
+      ]
+    },
+    {
+      "type": "columns",
+      "selectors": [
+        ".container .row.topbuffer .row"
+      ]
+    }
+  ]
+}

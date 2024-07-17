@@ -1,0 +1,75 @@
+{
+  "cleanup": {
+    "start": [
+      ".navholder",
+      "#skiptocontent",
+      ".footerrow",
+      ".subfooter",
+      ".sidebar",
+      ".sharethis-inline-share-buttons",
+      "form",
+      "#chat-widget-container",
+      ".mobile-footer",
+      ".modal-footer",
+      ".cd-top",
+      "#buttonClickModal",
+      "noscript",
+      ".homesearchmapwrapper"
+    ],
+    "end": [
+      ".breadcrumb",
+      ":scope > img",
+      "img[width=\"0\"][height=\"0\"]",
+      ".text-center small:has(strong)",
+      "small strong ::text(Tags:)",
+      "div.col-sm-9.sidebarbody ::text(By Hubble Homes, LLC)",
+      "h3 ::text(Leave a reply)"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "metadata",
+      "insertMode": "append",
+      "params": {
+        "cells": {
+          "Template": [
+            [".breadcrumb a[href*=\"news\"]", "news"]
+          ],
+          "PublishedDate": [[".text-center small strong", ".text-center small strong:first-child + ::text", { "replace": ["\\|"] }]],
+          "Categories": [[".text-center small strong", ".text-center small strong:last-child + ::text", { "replace": ["\\s*\\|\\s*", ", "] }]]
+        }
+      }
+    },
+    {
+      "type": "carousel",
+      "selectors": [
+        "#myCarousel"
+      ]
+    },
+    {
+      "type": "columns",
+      "variants": ["About"],
+      "selectors": [
+        ".row .row:has(.panel-group)"
+      ],
+      "params": {
+        "cells": ".panel-group"
+      }
+    },
+    {
+      "type": "video",
+      "selectors": [
+        ".video-container:has(iframe)"
+      ],
+      "params": {
+        "cells": {
+          "URL": "iframe[src]",
+          "Type": [
+            ["iframe[type]", "iframe[type]"],
+            ["*", "video"]
+          ]
+        }
+      }
+    }
+  ]
+}

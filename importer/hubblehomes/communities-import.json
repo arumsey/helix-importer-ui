@@ -1,0 +1,123 @@
+{
+  "cleanup": {
+    "start": [
+      ".navholder",
+      "#skiptocontent",
+      ".footerrow",
+      ".subfooter",
+      ".breadcrumb",
+      ".sidebar",
+      ".sharethis-inline-share-buttons",
+      "form",
+      "#chat-widget-container",
+      ".mobile-footer",
+      ".modal-footer",
+      ".cd-top",
+      "#buttonClickModal",
+      "#communities",
+      ".homesearchform",
+      ".modal",
+      ".graydivider",
+      ":scope > img",
+      "#inventoryshowhide"
+    ],
+    "end": [
+      ".container > .row > .col-sm-12 > small > a",
+      ".container.topbuffer .row .text-center",
+      ".container.topbuffer .row .col-sm-12 h2",
+      ".btn-primary",
+      ".btn-fancy",
+      ".col-sm-6 h4",
+      ".col-sm-6 br",
+      ".detailaccordioncontent",
+      ".detailthirdcolumncontent",
+      ".container > .row > .col-sm-12 > .btn-group"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "metadata",
+      "insertMode": "append",
+      "params": {
+        "cells": {
+          "Template": "community",
+          "PublishedDate": [[".text-center small strong", ".text-center small strong:first-child + ::text", { "replace": ["\\|"] }]],
+          "State": [["meta[property=\"og:url\"]", "meta[property=\"og:url\"]", { "split": ["/", 3] }]],
+          "Metro": [["meta[property=\"og:url\"]", "meta[property=\"og:url\"]", { "split": ["/", 4] }]],
+          "Area": [["meta[property=\"og:url\"]", "meta[property=\"og:url\"]", { "split": ["/", 5] }]],
+          "Community": [["meta[property=\"og:url\"]", "meta[property=\"og:url\"]", { "split": ["/", 6] }]],
+          "Path": [["meta[property=\"og:url\"]", "meta[property=\"og:url\"]", { "replace": ["https://www.hubblehomes.com"] }]]
+        }
+      }
+    },
+    {
+      "type": "specialists",
+      "selectors": [
+        ".row > .col-sm-2:has(img.img-circle[alt*=Headshots])"
+      ],
+      "params": {
+        "cells": {
+          "photo": "<img src='{{img[src]}}' alt='{{strong > small ::text:nth-child(1)}}'/>",
+          "name": [["strong", "strong > small ::text:nth-child(1)"]],
+          "email": [["a", "a[aria-label*=\"Send Email\"] ::text"]],
+          "phone": [["a", "a[aria-label*=\"Call\"] ::text"]]
+        }
+      }
+    },
+    {
+      "type": "carousel",
+      "variants": ["auto-2000"],
+      "selectors": [
+        ".homesearchmapwrapper:has(#myCarousel)"
+      ],
+      "params": {
+        "cells": [
+          ["Default Slide Text (optional)", ["<h2>{{.communitytitle-top #communitytitle-1}}</h2>{{.communitytitle-top #communitytitle-2}}<hr><h2>{{.communitytitle-bottom #communitytitle-3}}</h2>{{.communitytitle-bottom #communitytitle-4}}"]]
+        ]
+      }
+    },
+    {
+      "type": "Promotion",
+      "selectors": [
+        "div.well:has(> h3)"
+      ],
+      "params": {
+        "cells": [
+          ["Test"]
+        ]
+      }
+    },
+    {
+      "type": "Links",
+      "selectors": [
+        ".detaillinks"
+      ],
+      "params": {
+        "cells": [
+          ["a"]
+        ]
+      }
+    },
+    {
+      "type": "Description",
+      "selectors": [
+        ".col-sm-6.col-xs-6"
+      ],
+      "params": {
+        "cells": [
+          ["* ::text"]
+        ]
+      }
+    },
+    {
+      "type": "columns",
+      "variants": ["About"],
+      "selectors": [
+        ".row .row:has(.panel-group)"
+      ],
+      "params": {
+        "cells": ".panel-group"
+      }
+    }
+  ]
+}

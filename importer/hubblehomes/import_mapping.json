@@ -1,0 +1,68 @@
+[
+  {
+    "id": "box-id--1102402271",
+    "selector": "body .navholder",
+    "xpath": "/html[1]/body[1]/div[2]",
+    "layout": {
+      "numCols": 1,
+      "numRows": 1
+    },
+    "color": "rgb(148, 0, 211)",
+    "mapping": "exclude"
+  },
+  {
+    "id": "box-id--1723826943",
+    "selector": "body .container .subfooter",
+    "xpath": "/html[1]/body[1]/div[4]/div[6]",
+    "layout": {
+      "numCols": 1,
+      "numRows": 2
+    },
+    "color": "rgba(0, 0, 255, 0.4)",
+    "mapping": "exclude"
+  },
+  {
+    "id": "box-id-1035701923",
+    "selector": ".footerrow ",
+    "xpath": "/html[1]/body[1]/div[4]/div[5]/div[1]/div[1]/div[1]",
+    "layout": {
+      "numCols": 0,
+      "numRows": 0
+    },
+    "color": "rgba(0, 0, 255, 0.3)",
+    "mapping": "exclude"
+  },
+  {
+    "id": "box-id--1723827098",
+    "selector": "body .container .breadcrumb",
+    "xpath": "/html[1]/body[1]/div[4]/div[1]",
+    "layout": {
+      "numCols": 0,
+      "numRows": 0
+    },
+    "color": "rgba(0, 0, 255, 0.4)",
+    "mapping": "exclude"
+  },
+  {
+    "id": "box-id--1102402240",
+    "selector": "body .homesearchmapwrapper",
+    "xpath": "/html[1]/body[1]/div[3]",
+    "layout": {
+      "numCols": 2,
+      "numRows": 1
+    },
+    "color": "rgb(75, 0, 130)",
+    "mapping": "carousel"
+  },
+  {
+    "id": "box-id--2086345312",
+    "selector": "body .container .row.topbuffer .row",
+    "xpath": "/html[1]/body[1]/div[4]/div[3]/div[2]",
+    "layout": {
+      "numCols": 3,
+      "numRows": 1
+    },
+    "color": "rgba(0, 0, 255, 0.3)",
+    "mapping": "columns"
+  }
+]
