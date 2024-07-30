@@ -117,6 +117,9 @@ const setupBulkUI = () => {
   label.setAttribute('size', 'm');
   label.textContent = 'Import Job';
 
+  const fieldgroup = document.createElement('sp-field-group');
+  fieldgroup.setAttribute('horizontal', '');
+
   const picker = document.createElement('sp-picker');
   picker.setAttribute('id', 'import-job-picker');
   picker.setAttribute('size', 'm');
@@ -128,7 +131,51 @@ const setupBulkUI = () => {
     config.service.init(job);
   });
 
-  container.append(label, picker);
+  const deleteButton = document.createElement('sp-button');
+  deleteButton.setAttribute('id', 'deleteTrigger');
+  deleteButton.setAttribute('variant', 'negative');
+  deleteButton.setAttribute('icon-only', '');
+  deleteButton.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
+
+  const deleteOverlay = document.createElement('sp-overlay');
+  deleteOverlay.setAttribute('type', 'modal');
+  deleteOverlay.setAttribute('trigger', 'deleteTrigger@click');
+  deleteOverlay.innerHTML = `
+    <sp-dialog-base 
+    underlay
+    @click=${(event) => {
+    if ((event.target).localName === 'sp-button') {
+      (event.target).dispatchEvent(
+        new Event('close', { bubbles: true, composed: true }),
+      );
+    }
+  }}
+    >
+    <sp-dialog>
+      <h2 slot="heading">Delete Import Job</h2>
+      Are you sure you want to delete this import job?
+      <sp-button
+        slot="button"
+        id="cancelButton"
+        variant="secondary"
+        treatment="outline"
+      >
+        Cancel
+      </sp-button>
+      <sp-button
+        slot="button"
+        id="confirmButton"
+        variant="negative"
+        treatment="fill"
+      >
+        Delete
+       </sp-button>
+    </sp-dialog>
+    </sp-dialog-base>
+  `;
+
+  fieldgroup.append(picker, deleteButton, deleteOverlay);
+  container.append(label, fieldgroup);
 
   document.querySelector('#import-result').prepend(container);
 };

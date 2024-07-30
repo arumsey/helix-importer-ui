@@ -197,3 +197,7 @@
 .import #import-result div:has(#import-job-picker) {
   margin-bottom: 12px;
 }
+
+.import #import-result #import-job-picker {
+  margin-right: 8px;
+}

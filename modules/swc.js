@@ -7,6 +7,7 @@ import '@spectrum-web-components/theme/sp-theme.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-edit.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-anchor-select.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-alias.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-delete.js';
 
 import '@spectrum-web-components/tabs/sp-tabs.js';
 import '@spectrum-web-components/tabs/sp-tab.js';
@@ -39,3 +40,8 @@ import '@spectrum-web-components/sidenav/sp-sidenav-item.js';
 import '@spectrum-web-components/toast/sp-toast.js';
 
 import '@spectrum-web-components/progress-circle/sp-progress-circle.js';
+
+import '@spectrum-web-components/overlay/sp-overlay.js';
+import '@spectrum-web-components/dialog/sp-dialog.js';
+import '@spectrum-web-components/dialog/sp-dialog-base.js';
+import '@spectrum-web-components/alert-dialog/sp-alert-dialog.js';
