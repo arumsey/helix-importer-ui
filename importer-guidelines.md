@@ -599,6 +599,22 @@ You can also use Chrome extensions like:
 
 to disable CORS headers or set a custom cookie / referer for some of the requests made by the site.
 
+### Custom headers
+
+Using the following command, you can define custom header sent by the proxy to the remote host:
+
+```
+aem import --headers-file ./headers.json
+```
+
+This is useful to control the headers of the proxied request. One typical usecase is to define the `Authorization` header or the `Cookie` header to authenticate to the remote host. The `headers.json` file would then look like this:
+
+```
+{
+  "Authorization": "Bearer your_token_here"
+}
+```
+
 ### Images
 
 When the import process creates the docx, images are downloaded and inlined inside the Word document. Later, when the page is previewed for the first time, the images are then uploaded to the AEM Edge Delivery media bus.
@@ -738,3 +754,16 @@ export default {
 ```
 
 Just add the extra styles you need to perform your transformation.
+
+### Hot reload of JS Dependencies
+
+It is common to use multiple files for the import process, usually using `import.js` as the entry.  By default, the UI will only hot reload changes in the "Transformation file URL" specified in the UI (i.e. import.js) and *not* its 'imports' which forces the user to refresh whenever dependencies are changed. To enable hot reload of dependencies, `esbuild` can be used with the watch option.
+
+- Ensure `esbuild` is installed and accessible.
+- From the command line, start `esbuild` as follows (varying paths and/or parameters as required):
+  - `esbuild import.js --bundle --outdir=importjs --watch`
+  - This will watch for changes on import.js **and** all its imports, bundling them in the specified `outdir`.
+- In the Importer UI, change the transformation file indicated to the one that is built in the output dir.
+
+Now the UI will load the bundled JS file, which will be automatically built when any changes are made.
+
