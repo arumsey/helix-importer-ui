@@ -10,7 +10,16 @@
 
     <script src="./js/shared/log.js"></script>
     <script src="./js/dist/spectrum-web-components.js"></script>
-
+    <script type="importmap">
+        {
+          "imports": {
+            "preact": "https://esm.sh/preact@10.23.1",
+            "preact/": "https://esm.sh/preact@10.23.1/",
+            "@preact/signals": "https://esm.sh/@preact/signals@1.3.0?external=preact",
+            "htm/preact": "https://esm.sh/htm@3.1.1/preact?external=preact"
+          }
+        }
+    </script>
     <script src="./js/libs/vendors/codemirror/codemirror.js"></script>
     <script src="./js/libs/vendors/codemirror/xml.js"></script>
     <script src="./js/libs/vendors/codemirror/javascript.js"></script>
@@ -20,10 +29,9 @@
     <script src="./js/libs/vendors/js-beautify/beautify-html.min.js"></script>
     <script src="./js/libs/vendors/babel-polyfill/polyfill.js"></script>
     <script src="./js/libs/vendors/exceljs/exceljs.min.js"></script>
-
     <script src="./js/dist/helix-importer.js"></script>
-
     <script src="./js/import/import.ui.js" type="module"></script>
+    <script src="./js/import/import.assistant.js" type="module"></script>
 </head>
 
 <body class="tool">
@@ -71,7 +79,6 @@
                                         <sp-help-text variant="negative" icon>
                                             Security risk: only enable Javascript execution when importing from trusted websites.
                                         </sp-help-text>
-
                                         <sp-checkbox class="option-field" id="import-scroll-to-bottom" checked>
                                             Scroll to bottom
                                         </sp-checkbox>
@@ -85,6 +92,7 @@
                             <div id="import-action-row">
                                 <sp-button-group>
                                     <sp-button id="import-doimport-button">Import</sp-button>
+                                    <sp-button id="trigger">Assistant</sp-button>
                                 </sp-button-group>
                                 <p id="transformation-file-default" class="hidden">NOTE: The default transformation file is being used.</p>
                             </div>
@@ -103,9 +111,7 @@
                             <sp-tab label="HTML" value="import-html"></sp-tab>
                             <div id="import-file-picker-container"></div>
                             <sp-tab-panel value="import-preview">
-                                <sp-theme color="light" scale="medium">
-                                    <div id="import-markdown-preview"></div>
-                                </sp-theme>
+                                <div id="import-markdown-preview"></div>
                             </sp-tab-panel>
                             <sp-tab-panel value="import-markdown">
                                 <div data-panel="source">
@@ -125,10 +131,22 @@
                         <sp-button-group>
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
                         </sp-button-group>
+                            <div class="chat-container">
+                                <sp-overlay>
+                                    <sp-dialog dismissable>
+                                        <span slot="heading">Chat Window</span>
+                                        <sp-textfield placeholder="Enter your message"></sp-textfield>
+                                        <sp-action-button>Send</sp-action-button>
+                                    </sp-dialog>
+                                </sp-overlay>
+                            </div>
                     </div>
                 </div>
             </section>
         </main>
+        <div id="assistant-container">
+
+        </div>
         <div id="alert-container"></div>
     </sp-theme>
 </body>
