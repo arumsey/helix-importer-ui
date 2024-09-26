@@ -133,22 +133,20 @@
                         <sp-button-group>
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
                         </sp-button-group>
-                            <div class="chat-container">
-                                <sp-overlay>
-                                    <sp-dialog dismissable>
-                                        <span slot="heading">Chat Window</span>
-                                        <sp-textfield placeholder="Enter your message"></sp-textfield>
-                                        <sp-action-button>Send</sp-action-button>
-                                    </sp-dialog>
-                                </sp-overlay>
-                            </div>
+                        <sp-overlay trigger="trigger@click" type="manual">
+                            <sp-popover class="chat-container">
+                                <sp-dialog dismissable>
+                                    <span slot="heading">Chat Window</span>
+                                    <sp-textfield placeholder="Enter your message"></sp-textfield>
+                                    <sp-action-button>Send</sp-action-button>
+                                </sp-dialog>
+                            </sp-popover>
+                        </sp-overlay>
                     </div>
                 </div>
             </section>
         </main>
-        <div id="assistant-container">
-
-        </div>
+        <div id="assistant-container"></div>
         <div id="alert-container"></div>
     </sp-theme>
 </body>

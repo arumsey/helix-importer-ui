@@ -46,6 +46,7 @@ import '@spectrum-web-components/progress-circle/sp-progress-circle.js';
 import '@spectrum-web-components/top-nav/sp-top-nav.js';
 import '@spectrum-web-components/top-nav/sp-top-nav-item.js';
 
+import '@spectrum-web-components/overlay/sp-overlay.js';
 import '@spectrum-web-components/action-menu/sp-action-menu.js';
 
 import '@spectrum-web-components/menu/sp-menu.js';
