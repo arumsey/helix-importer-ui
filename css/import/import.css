@@ -8,7 +8,6 @@
   --hlx-import-link-color: #0563C1;
   --hlx-import-secondary-heading-color: #434343;
   --hlx-import-tertiary-heading-color: #666;
-  --hlx-import-background-color: var(--spectrum-global-color-gray-800);
   --hlx-import-table-head-background-color: #F5CBCD;
 
   /* FONTS */
@@ -57,12 +56,16 @@
   font-size: 12px;
 }
 
+.import sp-theme[color="light"] {
+  width: 100%;
+}
+
 .import #import-markdown-preview {
   height: calc(100vh - 232px);
-  border: 1px solid var(--spectrum-global-color-gray-100);
+  border: 1px solid var(--spectrum-global-color-gray-300);
   padding: 12px;
-  background-color: var(--hlx-import-background-color);
-  color: var(--hlx-import-text-color);
+  background-color: var(--spectrum-global-color-gray-50);
+  color: var(--spectrum-global-color-gray-800);
   font-family: var(--hlx-import-font-family);
   font-size: var(--hlx-import-body-font-size);
   line-height: 1.15;
