@@ -1,6 +1,14 @@
 
-.import .chat-container {
-  position: fixed;
-  bottom: 1em;
-  right: 1em;
+.import .page-assistant {
+  margin: var(--spectrum-global-dimension-size-250) 0;
+}
+
+.import #assistant-container {
+  margin-top: var(--spectrum-global-dimension-size-250);
+}
+
+.import .assistant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
 }

@@ -33,6 +33,12 @@ import {
   clearBulkResults,
 } from './import.bulk.js';
 import importStatus from './import.status.js';
+import renderAssistant from './import.assistant.js';
+import {
+  getContentFrame,
+  getProxyURLSetup,
+  loadDocument,
+} from '../shared/document.js';
 
 const PARENT_SELECTOR = '.import';
 
@@ -47,6 +53,9 @@ const FOLDERNAME_SPAN = document.getElementById('folder-name');
 
 const IS_BULK = document.querySelector('.import-bulk') !== null;
 const USE_IMPORT_SERVICE = document.querySelector('#import-use-service');
+
+const ASSISTANT_CONTAINER = document.querySelector(`${PARENT_SELECTOR} .page-assistant`);
+const ASSISTANT_BUTTON = document.getElementById('import-assistant-button');
 
 const config = {};
 
@@ -67,24 +76,6 @@ const disableProcessButtons = () => {
 
 const enableProcessButtons = () => {
   IMPORT_BUTTON.disabled = false;
-};
-
-const getProxyURLSetup = (url, origin) => {
-  const u = new URL(url);
-  if (!u.searchParams.get('host')) {
-    u.searchParams.append('host', u.origin);
-  }
-  const src = `${origin}${u.pathname}${u.search}`;
-  return {
-    remote: {
-      url,
-      origin: u.origin,
-    },
-    proxy: {
-      url: src,
-      origin,
-    },
-  };
 };
 
 const postSuccessfulStep = async (results, originalURL) => {
@@ -178,27 +169,6 @@ const postImportStep = async () => {
   return true;
 };
 
-const getContentFrame = () => document.querySelector(`${PARENT_SELECTOR} iframe`);
-
-const sleep = (ms) => new Promise(
-  (resolve) => {
-    setTimeout(resolve, ms);
-  },
-);
-
-const smartScroll = async (window) => {
-  let scrolledOffset = 0;
-  let maxLoops = 4;
-  while (maxLoops > 0 && window.document.body.scrollHeight > scrolledOffset) {
-    const scrollTo = window.document.body.scrollHeight;
-    window.scrollTo({ left: 0, top: scrollTo, behavior: 'smooth' });
-    scrolledOffset = scrollTo;
-    maxLoops -= 1;
-    // eslint-disable-next-line no-await-in-loop
-    await sleep(250);
-  }
-};
-
 const setDefaultTransformerNotice = (importer) => {
   if (importer.usingDefaultTransformer) {
     DEFAULT_TRANSFORMER_USED.classList.remove('hidden');
@@ -241,128 +211,79 @@ const startImport = async () => {
       // eslint-disable-next-line no-console
       console.log(`Importing: ${importStatus.getStatus().imported} => ${src}`);
 
-      let res;
-      try {
-        const headers = JSON.parse(config.fields['import-custom-headers'] || '{}');
-        res = await fetch(src, {
-          headers,
-        });
-      } catch (e) {
+      const res = await loadDocument(url, {
+        origin: config.origin,
+        headers: config.fields['import-custom-headers'],
+        enableJs: config.fields['import-enable-js'],
+        scrollToBottom: config.fields['import-scroll-to-bottom'],
+        pageLoadTimeout: config.fields['import-pageload-timeout'],
+      });
+
+      if (res.error) {
         // eslint-disable-next-line no-console
-        console.error(`Unexpected error when trying to fetch ${src} - CORS issue or invalid headers ?`, e);
-      }
-      if (res && res.ok) {
-        if (res.redirected) {
-          const u = new URL(res.url);
-          let redirect = res.url;
-          if (u.origin === window.location.origin) {
-            redirect = `${remote.origin}${u.pathname}`;
-          }
-          importStatus.addRow({
-            url,
-            status: 'Redirect',
-            redirect,
-          });
-          // eslint-disable-next-line no-console
-          console.warn(`Cannot transform ${url} - redirected to ${redirect}`);
-          updateImporterUI([{ status: 'redirect', from: url, to: redirect }], url);
-          processNext();
-        } else {
-          const contentType = res.headers.get('content-type');
-          if (contentType.includes('html') || contentType.includes('json')) {
-            const frame = document.createElement('iframe');
-            frame.id = 'import-content-frame';
-
-            if (config.fields['import-enable-js']) {
-              frame.removeAttribute('sandbox');
-            } else {
-              frame.setAttribute('sandbox', 'allow-same-origin');
-            }
-
-            const onLoad = async () => {
-              const includeDocx = !!dirHandle && config.fields['import-local-docx'];
-
-              if (config.fields['import-scroll-to-bottom']) {
-                await smartScroll(frame.contentWindow.window);
-              }
-
-              await sleep(config.fields['import-pageload-timeout'] || 100);
-
-              if (config.fields['import-scroll-to-bottom']) {
-                await smartScroll(frame.contentWindow.window);
-              }
-
-              if (frame.contentDocument) {
-                const { originalURL, replacedURL } = frame.dataset;
-
-                const onLoadSucceeded = await config.importer.onLoad({
-                  url: replacedURL,
-                  document: frame.contentDocument,
-                  params: { originalURL },
-                });
-
-                if (onLoadSucceeded) {
-                  config.importer.setTransformationInput({
-                    url: replacedURL,
-                    document: frame.contentDocument,
-                    includeDocx,
-                    params: { originalURL },
-                  });
-                  await config.importer.transform();
-                }
-              }
-
-              const event = new Event('transformation-complete');
-              frame.dispatchEvent(event);
-            };
-
-            frame.addEventListener('load', onLoad);
-            frame.addEventListener('transformation-complete', processNext);
-
-            frame.dataset.originalURL = url;
-            frame.dataset.replacedURL = src;
-
-            if (contentType.includes('json')) {
-              const blob = await res.blob();
-              frame.src = URL.createObjectURL(blob);
-            } else {
-              frame.src = src;
-            }
-
-            const current = getContentFrame();
-            current.removeEventListener('load', onLoad);
-            current.removeEventListener('transformation-complete', processNext);
-
-            current.replaceWith(frame);
-          } else if (dirHandle) {
-            const blob = await res.blob();
-            const u = new URL(src);
-            const path = WebImporter.FileUtils.sanitizePath(u.pathname);
-
-            await saveFile(dirHandle, path, blob);
-            importStatus.addRow({
-              url,
-              status: 'Success',
-              path,
-            });
-            updateImporterUI([{ status: 'success' }], url);
-            processNext();
-          }
-        }
-      } else {
-        // eslint-disable-next-line no-console
-        console.warn(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
-        alert.error(`Cannot transform ${src} - page may not exist (status ${res?.status || 'unknown status'})`);
+        console.warn(`Cannot transform ${src} - page may not exist (status ${res.status || 'unknown status'})`);
+        alert.error(`Cannot transform ${src} - page may not exist (status ${res.status || 'unknown status'})`);
         importStatus.addRow({
           url,
-          status: `Invalid: ${res?.status || 'unknown status'}`,
+          status: `Invalid: ${res.status || 'unknown status'}`,
         });
         updateImporterUI([{ status: 'error' }], url);
         processNext();
       }
+
+      if (res.redirected) {
+        const u = new URL(res.url);
+        let redirect = res.url;
+        if (u.origin === window.location.origin) {
+          redirect = `${remote.origin}${u.pathname}`;
+        }
+        importStatus.addRow({
+          url,
+          status: 'Redirect',
+          redirect,
+        });
+        // eslint-disable-next-line no-console
+        console.warn(`Cannot transform ${url} - redirected to ${redirect}`);
+        updateImporterUI([{ status: 'redirect', from: url, to: redirect }], url);
+        processNext();
+      }
+
+      if (res.document) {
+        const includeDocx = !!dirHandle && config.fields['import-local-docx'];
+
+        const { document, replacedURL, originalURL } = res;
+        const onLoadSucceeded = await config.importer.onLoad({
+          url: replacedURL,
+          document,
+          params: { originalURL },
+        });
+
+        if (onLoadSucceeded) {
+          config.importer.setTransformationInput({
+            url: replacedURL,
+            document,
+            includeDocx,
+            params: { originalURL },
+          });
+          await config.importer.transform();
+          processNext();
+        }
+      }
+
+      if (dirHandle && res.blob) {
+        const u = new URL(src);
+        const path = WebImporter.FileUtils.sanitizePath(u.pathname);
+
+        await saveFile(dirHandle, path, res.blob);
+        importStatus.addRow({
+          url,
+          status: 'Success',
+          path,
+        });
+        updateImporterUI([{ status: 'success' }], url);
+        processNext();
+      }
     } else {
-      const frame = getContentFrame();
-      frame.removeEventListener('transformation-complete', processNext);
       toggleReportButton(true);
       enableProcessButtons();
       toggleLoadingButton(IMPORT_BUTTON);
@@ -378,6 +299,7 @@ const startImport = async () => {
     clearBulkResults();
     if (!useService && config.fields['import-show-preview']) {
       PREVIEW_CONTAINER.classList.remove('hidden');
+      ASSISTANT_CONTAINER.classList.add('hidden');
     } else {
       PREVIEW_CONTAINER.classList.add('hidden');
     }
@@ -387,6 +309,7 @@ const startImport = async () => {
   } else {
     toggleReportButton(false);
     PREVIEW_CONTAINER.classList.remove('hidden');
+    ASSISTANT_CONTAINER.classList.add('hidden');
   }
 
   disableProcessButtons();
@@ -421,6 +344,20 @@ const startImport = async () => {
   } else {
     // perform import locally
     processNext();
+  }
+};
+
+const toggleAssistant = async () => {
+  if (ASSISTANT_CONTAINER.classList.contains('hidden')) {
+    const handle = await getDirectoryHandle();
+    if (handle) {
+      PREVIEW_CONTAINER.classList.add('hidden');
+      ASSISTANT_CONTAINER.classList.remove('hidden');
+      const assistantConfig = { origin: config.origin, fields: config.fields, dirHandle: handle };
+      renderAssistant(assistantConfig);
+    }
+  } else {
+    ASSISTANT_CONTAINER.classList.add('hidden');
   }
 };
 
@@ -466,6 +403,10 @@ const attachListeners = () => {
 
   IMPORT_BUTTON.addEventListener('click', async () => {
     startImport();
+  });
+
+  ASSISTANT_BUTTON.addEventListener('click', async () => {
+    toggleAssistant();
   });
 
   USE_IMPORT_SERVICE?.addEventListener('change', (event) => {

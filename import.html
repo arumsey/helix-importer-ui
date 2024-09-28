@@ -20,6 +20,7 @@
           }
         }
     </script>
+    <script src="./js/libs/vendors/html2canvas/html2canvas.min.js"></script>
     <script src="./js/libs/vendors/codemirror/codemirror.js"></script>
     <script src="./js/libs/vendors/codemirror/xml.js"></script>
     <script src="./js/libs/vendors/codemirror/javascript.js"></script>
@@ -31,7 +32,6 @@
     <script src="./js/libs/vendors/exceljs/exceljs.min.js"></script>
     <script src="./js/dist/helix-importer.js"></script>
     <script src="./js/import/import.ui.js" type="module"></script>
-    <script src="./js/import/import.assistant.js" type="module"></script>
 </head>
 
 <body class="tool">
@@ -40,8 +40,8 @@
             <!-- IMPORT SECTION -->
             <section class="import">
                 <div class="section-title">
-                    <h2>Import - Workbench</h2>
-                    <p>Prepare your import.js with the Import - Workbench.</p>
+                    <h2>Workbench</h2>
+                    <p>Prepare your import.js with the Import Workbench.</p>
                     <sp-divider size="l"></sp-divider>
                 </div>
                 <div class="section-cols">
@@ -92,16 +92,27 @@
                             <div id="import-action-row">
                                 <sp-button-group>
                                     <sp-button id="import-doimport-button">Import</sp-button>
-                                    <sp-button id="trigger">Assistant</sp-button>
+                                    <sp-button id="import-assistant-button" variant="primary">
+                                        <sp-icon-magic-wand slot="icon"></sp-icon-magic-wand>
+                                        Assistant
+                                        <sp-tooltip self-managed placement="right">The import assistant requires permission to access the filesystem. Please choose a folder where the assistant can save generated files.
+                                        </sp-tooltip>
+                                    </sp-button>
                                 </sp-button-group>
-                                <p id="transformation-file-default" class="hidden">NOTE: The default transformation file is being used.</p>
+                                <div id="transformation-file-default" class="hidden">
+                                    <sp-status-light size="s" variant="notice">The default transformation file is being used</sp-status-light>
+                                </div>
                             </div>
                         </form>
                         <span id="folder-name"></span>
                         <div class="page-preview hidden">
                             <sp-divider size="s"></sp-divider>
                             <h3>Page preview</h3>
-                            <iframe id="import-content-frame" frameborder="0"></iframe>
+                            <iframe id="import-content-frame"></iframe>
+                        </div>
+                        <div class="page-assistant hidden">
+                            <sp-divider size="s"></sp-divider>
+                            <div id="assistant-container"></div>
                         </div>
                     </div>
                     <div class="section-col">
@@ -133,20 +144,10 @@
                         <sp-button-group>
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
                         </sp-button-group>
-                        <sp-overlay trigger="trigger@click" type="manual">
-                            <sp-popover class="chat-container">
-                                <sp-dialog dismissable>
-                                    <span slot="heading">Chat Window</span>
-                                    <sp-textfield placeholder="Enter your message"></sp-textfield>
-                                    <sp-action-button>Send</sp-action-button>
-                                </sp-dialog>
-                            </sp-popover>
-                        </sp-overlay>
                     </div>
                 </div>
             </section>
         </main>
-        <div id="assistant-container"></div>
         <div id="alert-container"></div>
     </sp-theme>
 </body>

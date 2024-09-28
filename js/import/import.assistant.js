@@ -1,18 +1,26 @@
 import { render } from 'preact';
+import { useState, useMemo } from 'preact/hooks';
 import { html } from 'htm/preact';
+import { AssistantProvider } from '../assistant/useAssistant.js';
+import AssistantForm from '../assistant/AssistantForm.js';
 
-function Assistant({ trigger }) {
+function Assistant({ config }) {
+  const [assistantConfig, setAssistantConfig] = useState({ ...config });
+
+  const configContext = useMemo(() => ({ assistantConfig, setAssistantConfig }), [assistantConfig]);
+
   return html`
-      <sp-overlay trigger="${trigger}@click" type="manual">
-          <sp-popover class="chat-container">
-              <sp-dialog dismissable>
-                  <span slot="heading">Chat Window</span>
-                  <sp-textfield placeholder="Enter your message"></sp-textfield>
-                  <sp-action-button>Send</sp-action-button>
-              </sp-dialog>
-          </sp-popover>
-      </sp-overlay>
+      <${AssistantProvider} value=${configContext}>
+        <div class="import-assistant">
+            ${assistantConfig.dirHandle && html`<${AssistantForm} />`}
+        </div>
+      </AssistantProvider>
         `;
 }
 
-render(html`<${Assistant} trigger="assistant-trigger" />`, document.getElementById('assistant-container'));
+export default function renderAssistant(config) {
+  render(
+    html`<${Assistant} config=${config}/>`,
+    document.getElementById('assistant-container'),
+  );
+}

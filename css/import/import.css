@@ -46,18 +46,16 @@
 
 .import #import-action-row {
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.import #transformation-file-default {
-  text-align: right;
-  font-style: italic;
-  font-size: 12px;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-150);
 }
 
 .import sp-theme[color="light"] {
   width: 100%;
+}
+
+.import #import-content-frame {
+  border: none;
 }
 
 .import #import-markdown-preview {

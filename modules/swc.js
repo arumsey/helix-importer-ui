@@ -10,6 +10,9 @@ import '@spectrum-web-components/icons-workflow/icons/sp-icon-anchor-select.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-alias.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-delete.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-contrast.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-magic-wand.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-alert-circle-filled.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-send.js';
 
 import '@spectrum-web-components/tabs/sp-tabs.js';
 import '@spectrum-web-components/tabs/sp-tab.js';
@@ -31,6 +34,8 @@ import '@spectrum-web-components/picker/sp-picker.js';
 
 import '@spectrum-web-components/divider/sp-divider.js';
 import '@spectrum-web-components/help-text/sp-help-text.js';
+import '@spectrum-web-components/status-light/sp-status-light.js';
+import '@spectrum-web-components/tooltip/sp-tooltip.js';
 
 import '@spectrum-web-components/accordion/sp-accordion.js';
 import '@spectrum-web-components/accordion/sp-accordion-item.js';
@@ -44,10 +49,10 @@ import '@spectrum-web-components/toast/sp-toast.js';
 import '@spectrum-web-components/progress-circle/sp-progress-circle.js';
 
 import '@spectrum-web-components/top-nav/sp-top-nav.js';
-import '@spectrum-web-components/top-nav/sp-top-nav-item.js';
 
-import '@spectrum-web-components/overlay/sp-overlay.js';
+// import '@spectrum-web-components/overlay/sp-overlay.js';
 import '@spectrum-web-components/action-menu/sp-action-menu.js';
+// import '@spectrum-web-components/action-menu/sp-action-menu.js';
 
 import '@spectrum-web-components/menu/sp-menu.js';
 import '@spectrum-web-components/menu/sp-menu-group.js';
