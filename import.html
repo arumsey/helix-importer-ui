@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="./css/import/import.css" />
 
     <script src="./js/shared/log.js"></script>
-    <script src="./js/dist/spectrum-web-components.js"></script>
+    <script src="./js/dist/spectrum-web-components.js" async></script>
     <script type="importmap">
         {
           "imports": {
@@ -34,14 +34,14 @@
     <script src="./js/import/import.ui.js" type="module"></script>
 </head>
 
-<body class="tool">
+<body class="tool loading">
     <sp-theme color="dark" scale="medium">
         <main>
             <!-- IMPORT SECTION -->
             <section class="import">
                 <div class="section-title">
                     <h2>Workbench</h2>
-                    <p>Prepare your import.js with the Import Workbench.</p>
+                    <p>Prepare your import script for migrating your site content.</p>
                     <sp-divider size="l"></sp-divider>
                 </div>
                 <div class="section-cols">
@@ -92,12 +92,20 @@
                             <div id="import-action-row">
                                 <sp-button-group>
                                     <sp-button id="import-doimport-button">Import</sp-button>
-                                    <sp-button id="import-assistant-button" variant="primary">
-                                        <sp-icon-magic-wand slot="icon"></sp-icon-magic-wand>
-                                        Assistant
-                                        <sp-tooltip self-managed placement="right">The import assistant requires permission to access the filesystem. Please choose a folder where the assistant can save generated files.
-                                        </sp-tooltip>
-                                    </sp-button>
+                                    <div style="display: flex; align-items: center; gap: 4px">
+                                        <sp-button id="import-assistant-button" variant="primary">
+                                            <sp-icon-magic-wand slot="icon"></sp-icon-magic-wand>
+                                            Assistant
+                                        </sp-button>
+                                        <sp-contextual-help>
+                                            <h2 slot="heading">Import Assistant</h2>
+                                            <p>
+                                                Use the import assistant to help with the automatic generation of an import script.
+                                                The assistant will guide you through the process of preparing a document for importing to AEM.
+                                            </p>
+                                            <p>The import assistant requires permission to access the filesystem where generated files can be saved.</p>
+                                        </sp-contextual-help>
+                                    </div>
                                 </sp-button-group>
                                 <div id="transformation-file-default" class="hidden">
                                     <sp-status-light size="s" variant="notice">The default transformation file is being used</sp-status-light>
@@ -122,7 +130,7 @@
                             <sp-tab label="HTML" value="import-html"></sp-tab>
                             <div id="import-file-picker-container"></div>
                             <sp-tab-panel value="import-preview">
-                                <sp-theme color="light">
+                                <sp-theme color="light" scale="medium">
                                     <div id="import-markdown-preview"></div>
                                 </sp-theme>
                             </sp-tab-panel>
@@ -150,6 +158,6 @@
         </main>
         <div id="alert-container"></div>
     </sp-theme>
+    <script src="./js/swc_loader.js" type="module"></script>
 </body>
-
 </html>
