@@ -14,6 +14,7 @@ import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.
 import { loadURLsFromRobots } from '../shared/sitemap.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
+import applyDefaultTheme from '../shared/theme.js';
 
 const PARENT_SELECTOR = '.crawl';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -405,6 +406,7 @@ const init = () => {
   config.origin = window.location.origin;
   config.fields = initOptionFields(CONFIG_PARENT_SELECTOR);
 
+  applyDefaultTheme();
   attachListeners();
 };
 

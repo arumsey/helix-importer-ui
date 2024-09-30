@@ -10,25 +10,11 @@
  * governing permissions and limitations under the License.
  */
 
-const SIDENAV_ITEMS = document.querySelectorAll('sp-sidenav-item');
-const GITHUB_LINK = document.querySelector('a.footer');
-
-function updateSectionView(e) {
-  const value = e.target?.getAttribute('value');
-  if (value && value.endsWith('.html')) {
-    const frame = document.querySelector('iframe');
-    frame.src = value;
+function applyDefaultTheme() {
+  const theme = document.querySelector('sp-theme');
+  if (theme) {
+    theme.setAttribute('color', localStorage.getItem('sp-theme') || 'dark');
   }
 }
 
-SIDENAV_ITEMS?.forEach((item) => {
-  item.addEventListener('click', updateSectionView);
-});
-
-async function updateVersion() {
-  const res = await fetch('./package.json');
-  const json = await res.json();
-  GITHUB_LINK.textContent += `${json.name}@${json.version}`;
-}
-
-updateVersion();
+export default applyDefaultTheme;

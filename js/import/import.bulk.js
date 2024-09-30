@@ -1,3 +1,15 @@
+/*
+ * Copyright 2024 Adobe. All rights reserved.
+ * This file is licensed to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License. You may obtain a copy
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
 import ServiceImporter from '../shared/serviceimporter.js';
 import { PreviewButtons } from './import.preview.js';
 
@@ -64,14 +76,12 @@ const setupBulkUI = (config) => {
   deleteButton.setAttribute('icon-only', '');
   deleteButton.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
 
-  /*
   const deleteOverlay = document.createElement('sp-overlay');
   deleteOverlay.setAttribute('type', 'modal');
   deleteOverlay.setAttribute('trigger', 'deleteTrigger@click');
   deleteOverlay.innerHTML = `
     <sp-dialog-base
-    underlay
-    @click=${(event) => {
+    click=${(event) => {
     if ((event.target).localName === 'sp-button') {
       (event.target).dispatchEvent(
         new Event('close', { bubbles: true, composed: true }),
@@ -104,8 +114,6 @@ const setupBulkUI = (config) => {
 
   fieldgroup.append(picker, deleteButton, deleteOverlay);
   container.append(label, fieldgroup);
-
-   */
 
   document.querySelector('#import-result').prepend(container);
 };

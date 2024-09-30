@@ -18,6 +18,7 @@ import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { register } from '../shared/messages.js';
 import ServiceImporter from '../shared/serviceimporter.js';
+import applyDefaultTheme from '../shared/theme.js';
 import {
   setupPreview,
   attachPreviewListeners,
@@ -431,6 +432,7 @@ const init = () => {
   config.origin = window.location.origin;
   config.fields = initOptionFields(CONFIG_PARENT_SELECTOR);
 
+  applyDefaultTheme();
   register();
   createImporter();
 
