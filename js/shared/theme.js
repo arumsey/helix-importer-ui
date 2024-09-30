@@ -10,11 +10,29 @@
  * governing permissions and limitations under the License.
  */
 
+const SP_THEME = document.querySelector('sp-theme');
+
 function applyDefaultTheme() {
-  const theme = document.querySelector('sp-theme');
-  if (theme) {
-    theme.setAttribute('color', localStorage.getItem('sp-theme') || 'dark');
+  if (SP_THEME) {
+    SP_THEME.setAttribute('color', localStorage.getItem('sp-theme') || 'dark');
   }
 }
 
-export default applyDefaultTheme;
+function toggleTheme() {
+  if (!SP_THEME) {
+    console.error('An sp-theme element was not found');
+    return;
+  }
+
+  SP_THEME.setAttribute('color', `${SP_THEME.color === 'light' ? 'dark' : 'light'}`);
+
+  const iframe = document.querySelector('main > iframe');
+  iframe.contentWindow.postMessage({ theme: SP_THEME.color }, '*');
+
+  localStorage.setItem('sp-theme', SP_THEME.color);
+}
+
+export {
+  toggleTheme,
+  applyDefaultTheme,
+};

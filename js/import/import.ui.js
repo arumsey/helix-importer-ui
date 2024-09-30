@@ -18,7 +18,7 @@ import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
 import { register } from '../shared/messages.js';
 import ServiceImporter from '../shared/serviceimporter.js';
-import applyDefaultTheme from '../shared/theme.js';
+import { applyDefaultTheme } from '../shared/theme.js';
 import {
   setupPreview,
   attachPreviewListeners,
@@ -406,7 +406,7 @@ const attachListeners = () => {
     startImport();
   });
 
-  ASSISTANT_BUTTON.addEventListener('click', async () => {
+  ASSISTANT_BUTTON?.addEventListener('click', async () => {
     toggleAssistant();
   });
 

@@ -9,15 +9,12 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-import applyDefaultTheme from './shared/theme.js';
+import { applyDefaultTheme, toggleTheme } from './shared/theme.js';
 
 const TOGGLE_THEME = document.querySelector('#toggle-theme');
 
 TOGGLE_THEME.addEventListener('click', () => {
-  theme.color = theme.color === 'light' ? 'dark' : 'light';
-
-  const iframe = document.querySelector('main iframe');
-  iframe.contentWindow.postMessage({ theme: theme.color }, '*');
+  toggleTheme();
 });
 
 applyDefaultTheme();

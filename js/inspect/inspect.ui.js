@@ -14,7 +14,8 @@ import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.
 import { drop, generateCSS, rgb2hex } from './inspect.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
-import applyDefaultTheme from '../shared/theme.js';
+import { applyDefaultTheme } from '../shared/theme.js';
+import { register } from '../shared/messages.js';
 
 const PARENT_SELECTOR = '.inspect';
 const CONFIG_PARENT_SELECTOR = `${PARENT_SELECTOR} form`;
@@ -285,6 +286,7 @@ const init = () => {
 
   applyDefaultTheme();
   attachListeners();
+  register();
 
   SPTABS.selected = 'inspect-logo';
 };
