@@ -11,10 +11,18 @@
  */
 import { applyDefaultTheme, toggleTheme } from './shared/theme.js';
 
-const TOGGLE_THEME = document.querySelector('#toggle-theme');
+const TOGGLE_THEME = document.querySelector('sp-top-nav #toggle-theme');
+const ACTION_MENU = document.querySelector('sp-top-nav sp-action-menu');
 
 TOGGLE_THEME.addEventListener('click', () => {
   toggleTheme();
+});
+
+ACTION_MENU.addEventListener('change', (event) => {
+  const { value } = event.currentTarget;
+  if (value === 'help') {
+    window.open('https://www.aem.live/developer/importer', '_blank');
+  }
 });
 
 applyDefaultTheme();

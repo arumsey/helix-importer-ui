@@ -300,3 +300,9 @@ section .page-preview iframe {
   flex-direction: column;
   row-gap: 4px;
 }
+
+/* Contextual Help */
+ sp-contextual-help > * {
+   width: 268px;
+   max-width: 268px;
+ }
