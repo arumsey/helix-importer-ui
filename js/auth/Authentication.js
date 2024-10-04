@@ -36,7 +36,18 @@ function Authentication() {
 
   return html`
           ${profile && html`<p>Hello, ${profile.first_name}</p>`}
-          ${!isSignedInUser ? html`<sp-button onClick=${handleClick}>Login</sp-button>` : html`
+          ${!isSignedInUser ? html`
+              <sp-button onClick=${handleClick}>Login</sp-button>
+              <sp-contextual-help variant="help">
+                  <h2 slot="heading">AEM Importer</h2>
+                  <p>
+                      The AEM Importer offers a set of tools to support you with rapidly importing website content.
+                  </p>
+                  <sp-link slot="link" href="https://www.aem.live/developer/importer#the-aem-importer" target="_blank">
+                      Learn more about importing content
+                  </sp-link>
+              </sp-contextual-help>
+          ` : html`
           <sp-action-menu
                   label="Account"
                   placement="bottom-end"

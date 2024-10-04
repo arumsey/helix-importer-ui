@@ -247,6 +247,18 @@ section .section-title {
   margin-bottom: 12px;
 }
 
+ section .section-title > div {
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   gap: var(--spectrum-global-dimension-static-size-100);
+   margin-bottom: var(--spectrum-global-dimension-static-size-150);;
+ }
+
+ section .section-title > div h2 {
+   margin: 0;
+ }
+
 section .section-cols {
   display: grid;
   grid-template-columns: minmax(200px, 500px) minmax(200px, auto);
