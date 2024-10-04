@@ -16,7 +16,7 @@ const GITHUB_LINK = document.querySelector('a.footer');
 function updateSectionView(e) {
   const value = e.target?.getAttribute('value');
   if (value && value.endsWith('.html')) {
-    const frame = document.querySelector('iframe');
+    const frame = document.querySelector('main > iframe');
     frame.src = value;
   }
 }

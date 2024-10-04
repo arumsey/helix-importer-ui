@@ -9,10 +9,12 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
+/* global WebImporter adobeIMS */
 import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 import { loadDocument } from '../shared/document.js';
+import { importerEvents } from '../shared/events.js';
+import { getRuntime } from '../shared/runtime.js';
 
 const AssistantContext = createContext();
 export const AssistantProvider = AssistantContext.Provider;
@@ -29,7 +31,7 @@ export function useAssistantActions() {
     const urlsArray = fields['import-url'].split('\n').reverse().filter((u) => u.trim() !== '');
 
     const url = urlsArray.pop();
-    const res = await loadDocument(url, {
+    const { document, screenshot } = await loadDocument(url, {
       origin,
       headers: fields['import-custom-headers'],
       enableJs: fields['import-enable-js'],
@@ -37,13 +39,31 @@ export function useAssistantActions() {
       pageLoadTimeout: fields['import-pageload-timeout'],
     });
 
-    console.log(res.document);
-
     // create an import builder factory
+    const { ims } = getRuntime();
+    const auth = {
+      accessToken: ims.accessToken.token,
+      imsOrgId: '',
+    };
+    const factory = WebImporter.ImportBuilderFactory({ auth });
 
     // set up event listeners
+    factory.on('start', (msg) => {
+      importerEvents.emit('start', msg);
+    });
+    factory.on('progress', (msg) => {
+      importerEvents.emit('progress', msg);
+    });
+    factory.on('complete', () => {
+      importerEvents.emit('complete');
+    });
 
     // send the command
+    const page = [document, screenshot];
+    const builder = await factory.create({ mode: 'script', page });
+
+    const manifest = await builder.buildProject();
+    console.log(manifest);
   };
 
   return {

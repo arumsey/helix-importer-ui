@@ -10,26 +10,32 @@
  * governing permissions and limitations under the License.
  */
 
-import { sendMessage } from '../shell.js';
+const iframe = document.querySelector('main > iframe');
 
-const SP_THEME = document.querySelector('sp-theme');
+function sendRuntime(obj) {
+  const attachRuntime = () => {
+    const { contentWindow } = iframe;
+    if (typeof contentWindow.attachRuntime === 'function') {
+      contentWindow.attachRuntime(obj);
+    } else {
+      console.error('Unable to attach the importer runtime to the iframe.');
+    }
+  };
 
-function applyDefaultTheme() {
-  if (SP_THEME) {
-    SP_THEME.setAttribute('color', localStorage.getItem('sp-theme') || 'dark');
+  if (iframe.contentDocument) {
+    attachRuntime();
+  } else {
+    iframe.addEventListener('load', attachRuntime);
   }
 }
 
-function toggleTheme() {
-  if (!SP_THEME) {
-    return;
+function sendMessage(msg) {
+  if (iframe.contentWindow) {
+    iframe.contentWindow.postMessage(msg, '*');
   }
-  SP_THEME.setAttribute('color', `${SP_THEME.color === 'light' ? 'dark' : 'light'}`);
-  sendMessage({ theme: SP_THEME.color });
-  localStorage.setItem('sp-theme', SP_THEME.color);
 }
 
 export {
-  toggleTheme,
-  applyDefaultTheme,
+  sendRuntime,
+  sendMessage,
 };

@@ -10,26 +10,5 @@
  * governing permissions and limitations under the License.
  */
 
-import { sendMessage } from '../shell.js';
-
-const SP_THEME = document.querySelector('sp-theme');
-
-function applyDefaultTheme() {
-  if (SP_THEME) {
-    SP_THEME.setAttribute('color', localStorage.getItem('sp-theme') || 'dark');
-  }
-}
-
-function toggleTheme() {
-  if (!SP_THEME) {
-    return;
-  }
-  SP_THEME.setAttribute('color', `${SP_THEME.color === 'light' ? 'dark' : 'light'}`);
-  sendMessage({ theme: SP_THEME.color });
-  localStorage.setItem('sp-theme', SP_THEME.color);
-}
-
-export {
-  toggleTheme,
-  applyDefaultTheme,
-};
+import './topnav.js';
+import './sidenav.js';

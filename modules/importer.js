@@ -20,6 +20,7 @@ import {
   html2md,
   rules,
 } from '@adobe/helix-importer';
+import { ImportBuilderFactory } from 'aem-import-builder';
 
 import docxStylesXML from '../resources/styles.xml';
 
@@ -91,4 +92,5 @@ export {
   html2mdWrapper as html2md,
   html2docxWrapper as html2docx,
   rules,
+  ImportBuilderFactory,
 };

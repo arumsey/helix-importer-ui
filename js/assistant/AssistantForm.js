@@ -10,13 +10,33 @@
  * governing permissions and limitations under the License.
  */
 
-import { useState, useCallback } from 'preact/hooks';
+import { useEffect, useState, useCallback } from 'preact/hooks';
 import { html } from 'htm/preact';
 import { useAssistantActions } from './useAssistant.js';
+import { importerEvents } from '../shared/events.js';
 
 function AssistantForm() {
   const { sendCommand } = useAssistantActions();
   const [form, setForm] = useState({ command: '', prompt: '' });
+  const [eventMessage, setEventMessage] = useState('');
+
+  useEffect(() => {
+    const handleStart = (event) => {
+      setEventMessage(`${event.detail}`);
+    };
+
+    const handleProgress = (event) => {
+      setEventMessage(`${event.detail}`);
+    };
+
+    importerEvents.on('start', handleStart);
+    importerEvents.on('progress', handleProgress);
+
+    return () => {
+      importerEvents.off('start', handleStart);
+      importerEvents.off('progress', handleProgress);
+    };
+  }, []);
 
   const handleSend = useCallback(() => {
     sendCommand(form.command, form.prompt);
@@ -43,7 +63,7 @@ function AssistantForm() {
               <sp-icon-send slot="icon"></sp-icon-send>
               Send
           </sp-button>
-          <p>${JSON.stringify(form)}</p>
+          <p>${eventMessage}</p>
       </form>
         `;
 }

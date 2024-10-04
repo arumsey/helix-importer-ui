@@ -16,7 +16,7 @@ import { asyncForEach } from '../shared/utils.js';
 import PollImporter from '../shared/pollimporter.js';
 import alert from '../shared/alert.js';
 import { toggleLoadingButton } from '../shared/ui.js';
-import { register } from '../shared/messages.js';
+import { registerRuntime } from '../shared/runtime.js';
 import ServiceImporter from '../shared/serviceimporter.js';
 import { applyDefaultTheme } from '../shared/theme.js';
 import {
@@ -433,7 +433,7 @@ const init = () => {
   config.fields = initOptionFields(CONFIG_PARENT_SELECTOR);
 
   applyDefaultTheme();
-  register();
+  registerRuntime();
   createImporter();
 
   if (IS_BULK) {

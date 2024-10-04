@@ -9,20 +9,27 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
+import { render } from 'preact';
+import { html } from 'htm/preact';
 import { applyDefaultTheme, toggleTheme } from './shared/theme.js';
+import Authentication from './auth/Authentication.js';
 
 const TOGGLE_THEME = document.querySelector('sp-top-nav #toggle-theme');
-const ACTION_MENU = document.querySelector('sp-top-nav sp-action-menu');
 
-TOGGLE_THEME.addEventListener('click', () => {
-  toggleTheme();
-});
+function attachListeners() {
+  TOGGLE_THEME.addEventListener('click', () => {
+    toggleTheme();
+  });
+}
 
-ACTION_MENU.addEventListener('change', (event) => {
-  const { value } = event.currentTarget;
-  if (value === 'help') {
-    window.open('https://www.aem.live/developer/importer', '_blank');
-  }
-});
+function renderAuthentication() {
+  render(
+    html`<${Authentication}/>`,
+    document.getElementById('authentication-container'),
+  );
+}
 
 applyDefaultTheme();
+renderAuthentication();
+attachListeners();

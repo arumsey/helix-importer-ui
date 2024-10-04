@@ -1,4 +1,6 @@
 /* global html2canvas */
+import { importerEvents } from './events.js';
+
 const getContentFrame = () => document.querySelector('.page-preview  iframe#import-content-frame');
 
 const sleep = (ms) => new Promise(
@@ -50,6 +52,8 @@ const loadDocument = async (url, options) => {
     origin, headers, enableJs, scrollToBottom, pageLoadTimeout = 100,
   } = options;
 
+  importerEvents.emit('start', `Fetching document from ${url}`);
+
   const { remote, proxy } = getProxyURLSetup(url, origin);
   const src = proxy.url;
 
@@ -65,6 +69,7 @@ const loadDocument = async (url, options) => {
   }
 
   if (!res || !res.ok) {
+    importerEvents.emit('complete');
     return {
       url,
       error: true,
@@ -73,6 +78,7 @@ const loadDocument = async (url, options) => {
   }
 
   if (res.redirected) {
+    importerEvents.emit('complete');
     return {
       redirected: true,
       url: res.url,
@@ -89,6 +95,8 @@ const loadDocument = async (url, options) => {
       blob,
     };
   }
+
+  importerEvents.emit('progress', `Waiting for ${url} to settle...`);
 
   const frame = document.createElement('iframe');
   frame.id = 'import-content-frame';
@@ -127,7 +135,6 @@ const loadDocument = async (url, options) => {
         screenshot,
       };
     }
-
     return {};
   };
 
@@ -151,6 +158,13 @@ const loadDocument = async (url, options) => {
       resolve(content);
     });
   });
+
+  const serializer = new XMLSerializer();
+  const serializedContent = serializer.serializeToString(doc.document);
+  const bytes = new TextEncoder().encode(serializedContent).length;
+
+  importerEvents.emit('progress', `Loaded: ${doc.document.title} (${bytes} bytes)`);
+  importerEvents.emit('complete');
 
   return { ...doc, url };
 };
