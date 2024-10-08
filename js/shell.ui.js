@@ -12,3 +12,8 @@
 
 import './topnav.js';
 import './sidenav.js';
+import { attachRuntime } from './shell.js';
+
+const iframe = document.querySelector('main > iframe');
+
+iframe.addEventListener('load', attachRuntime);

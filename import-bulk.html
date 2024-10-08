@@ -85,15 +85,9 @@
                                             Use Import Service
                                         </sp-checkbox>
                                         <sp-field-group hidden>
-                                            <sp-field-label for="spacecat-api-key">API Key</sp-field-label>
-                                            <sp-textfield class="option-field" id="spacecat-api-key">
-                                                <sp-help-text slot="help-text">API key for accessing SpaceCat services.</sp-help-text>
-                                            </sp-textfield>
-                                        </sp-field-group>
-                                        <sp-field-group hidden>
                                             <sp-field-label for="import-api-key">Import API Key</sp-field-label>
                                             <sp-textfield class="option-field" id="import-api-key">
-                                                <sp-help-text slot="help-text">API key for accessing the SpaceCat import endpoint.</sp-help-text>
+                                                <sp-help-text slot="help-text">API key for accessing the import service.</sp-help-text>
                                             </sp-textfield>
                                         </sp-field-group>
 
@@ -102,12 +96,13 @@
                                     </div>
                                 </sp-accordion-item>
                             </sp-accordion>
-
                             <div id="import-action-row">
                                 <sp-button-group>
                                     <sp-button id="import-doimport-button">Import</sp-button>
                                 </sp-button-group>
-                                <p id="transformation-file-default" class="hidden">NOTE: The default transformation file is being used.</p>
+                                <div id="transformation-file-default" class="hidden">
+                                    <sp-status-light size="s" variant="notice">The default transformation file is being used</sp-status-light>
+                                </div>
                             </div>
                         </form>
                         <span id="folder-name"></span>

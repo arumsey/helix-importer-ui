@@ -16,106 +16,12 @@ import { PreviewButtons } from './import.preview.js';
 const BULK_URLS_HEADING = document.querySelector('#import-result h2');
 const BULK_URLS_LIST = document.querySelector('#import-result ul');
 
-const buildImportPickerItems = (picker) => {
-  picker.textContent = '';
-  picker.removeAttribute('label');
-  picker.removeAttribute('value');
-  const jobCache = ServiceImporter.getJobs();
-  jobCache.forEach((job, index) => {
-    const { id, startTime } = job;
-    // pretty print end time
-    const startDate = new Date(startTime);
-    const item = document.createElement('sp-menu-item');
-    item.setAttribute('value', id);
-    item.textContent = startDate.toLocaleString();
-    if (index === jobCache.length - 1) {
-      item.setAttribute('selected', true);
-      picker.setAttribute('label', startDate.toLocaleString());
-      picker.setAttribute('value', id);
-    }
-    picker.appendChild(item);
-  });
-
-  if (jobCache.length === 0) {
-    picker.setAttribute('disabled', true);
-  } else {
-    picker.removeAttribute('disabled');
-  }
-};
-
 const setupBulkUI = (config) => {
   if (config.fields['import-use-service']) {
     document.querySelectorAll('#import-use-service ~ sp-field-group').forEach((el) => {
       el.removeAttribute('hidden');
     });
   }
-
-  const container = document.createElement('div');
-  const label = document.createElement('sp-field-label');
-  label.setAttribute('for', 'import-job-picker');
-  label.setAttribute('size', 'm');
-  label.textContent = 'Import Job';
-
-  const fieldgroup = document.createElement('sp-field-group');
-  fieldgroup.setAttribute('horizontal', '');
-
-  const picker = document.createElement('sp-picker');
-  picker.setAttribute('id', 'import-job-picker');
-  picker.setAttribute('size', 'm');
-  buildImportPickerItems(picker);
-
-  picker.addEventListener('change', (e) => {
-    const jobCache = ServiceImporter.getJobs();
-    const job = jobCache.find((j) => j.id === e.target.value);
-    config.service.init(job);
-  });
-
-  const deleteButton = document.createElement('sp-button');
-  deleteButton.setAttribute('id', 'deleteTrigger');
-  deleteButton.setAttribute('variant', 'negative');
-  deleteButton.setAttribute('icon-only', '');
-  deleteButton.innerHTML = '<sp-icon-delete slot="icon"></sp-icon-delete>';
-
-  const deleteOverlay = document.createElement('sp-overlay');
-  deleteOverlay.setAttribute('type', 'modal');
-  deleteOverlay.setAttribute('trigger', 'deleteTrigger@click');
-  deleteOverlay.innerHTML = `
-    <sp-dialog-base
-    click=${(event) => {
-    if ((event.target).localName === 'sp-button') {
-      (event.target).dispatchEvent(
-        new Event('close', { bubbles: true, composed: true }),
-      );
-    }
-  }}
-    >
-    <sp-dialog>
-      <h2 slot="heading">Delete Import Job</h2>
-      Are you sure you want to delete this import job?
-      <sp-button
-        slot="button"
-        id="cancelButton"
-        variant="secondary"
-        treatment="outline"
-      >
-        Cancel
-      </sp-button>
-      <sp-button
-        slot="button"
-        id="confirmButton"
-        variant="negative"
-        treatment="fill"
-      >
-        Delete
-       </sp-button>
-    </sp-dialog>
-    </sp-dialog-base>
-  `;
-
-  fieldgroup.append(picker, deleteButton, deleteOverlay);
-  container.append(label, fieldgroup);
-
-  document.querySelector('#import-result').prepend(container);
 };
 
 const clearBulkResults = () => {
@@ -234,7 +140,6 @@ const updateJobResults = (job) => {
 
 export {
   setupBulkUI,
-  buildImportPickerItems,
   updateBulkResults,
   clearBulkResults,
   updateJobResults,

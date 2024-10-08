@@ -28,7 +28,6 @@ import {
 } from './import.preview.js';
 import {
   setupBulkUI,
-  buildImportPickerItems,
   updateBulkResults,
   updateJobResults,
   clearBulkResults,
@@ -333,15 +332,11 @@ const startImport = async () => {
   if (useService) {
     // perform import using the service
     await config.service.startJob(urlsArray, {
-      saveAsDocx: config.fields['import-local-docx'],
-      saveAsHtml: config.fields['import-local-html'],
-      saveAsMd: config.fields['import-local-md'],
       enableJavascript: config.fields['import-enable-js'],
       scrollToBottom: config.fields['import-scroll-to-bottom'],
     });
     enableProcessButtons();
     toggleLoadingButton(IMPORT_BUTTON);
-    buildImportPickerItems(document.getElementById('import-job-picker'));
   } else {
     // perform import locally
     processNext();

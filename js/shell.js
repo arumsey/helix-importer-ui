@@ -12,20 +12,23 @@
 
 const iframe = document.querySelector('main > iframe');
 
-function sendRuntime(obj) {
-  const attachRuntime = () => {
-    const { contentWindow } = iframe;
-    if (typeof contentWindow.attachRuntime === 'function') {
-      contentWindow.attachRuntime(obj);
-    } else {
-      console.error('Unable to attach the importer runtime to the iframe.');
-    }
-  };
+const runtime = {};
 
+function attachRuntime() {
+  const { contentWindow } = iframe;
+  if (typeof contentWindow.attachRuntime === 'function') {
+    contentWindow.attachRuntime(runtime);
+  } else {
+    console.error('Unable to attach the importer runtime to the iframe.');
+  }
+}
+
+function sendRuntime(obj) {
+  Object.entries(obj).forEach(([key, value]) => {
+    runtime[key] = value;
+  });
   if (iframe.contentDocument) {
     attachRuntime();
-  } else {
-    iframe.addEventListener('load', attachRuntime);
   }
 }
 
@@ -38,4 +41,5 @@ function sendMessage(msg) {
 export {
   sendRuntime,
   sendMessage,
+  attachRuntime,
 };

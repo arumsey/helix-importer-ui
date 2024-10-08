@@ -27,7 +27,6 @@ export default class ServiceImporter {
       ...cfg,
     };
     this.endpoint = endpoint[this.config.endpoint];
-    this.apiKey = this.config.apiKey;
     this.importApiKey = this.config.importApiKey;
     this.listeners = [];
     this.job = {};
@@ -41,8 +40,7 @@ export default class ServiceImporter {
   #getAuthHeaders() {
     return {
       'Content-Type': 'application/json',
-      'x-api-key': this.apiKey,
-      'x-import-api-key': this.importApiKey,
+      'x-api-key': this.importApiKey,
     };
   }
 
@@ -104,14 +102,18 @@ export default class ServiceImporter {
   }
 
   async startJob(urls = [], options = {}) {
-    if (!this.apiKey || !this.importApiKey) {
+    if (!this.importApiKey) {
       throw new Error('API keys are required');
     }
     try {
+      const requestBody = new FormData();
+      requestBody.append('urls', JSON.stringify(urls));
+      const { headers, ...restOptions } = options || {};
+
       const resp = await fetch(`${this.endpoint}${IMPORT_PATH}`, {
         method: 'POST',
         headers: this.#getAuthHeaders(),
-        body: JSON.stringify({ urls, ...options }),
+        body: requestBody,
       });
       if (resp.ok) {
         this.job = await resp.json();
@@ -137,7 +139,7 @@ export default class ServiceImporter {
   }
 
   async queryJob() {
-    if (!this.apiKey || !this.importApiKey) {
+    if (!this.importApiKey) {
       throw new Error('API keys are required');
     }
     const { id: jobId } = this.job;
@@ -164,7 +166,7 @@ export default class ServiceImporter {
   }
 
   async fetchResult() {
-    if (!this.apiKey || !this.importApiKey) {
+    if (!this.importApiKey) {
       throw new Error('API keys are required');
     }
     const { id: jobId } = this.job;
