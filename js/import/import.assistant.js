@@ -30,7 +30,8 @@ function Assistant({ config }) {
         <div class="import-assistant">
             <sp-action-button quiet onClick=${closeAssistant}>
                 <sp-icon-close slot="icon"></sp-icon-close>
-            </sp-action-button>            
+            </sp-action-button>          
+            <img src="./img/import_cat.jpg" alt="import cat flying through space" />
             ${assistantConfig.dirHandle && html`<${AssistantForm} />`}
         </div>
       </AssistantProvider>
