@@ -10,6 +10,8 @@
  * governing permissions and limitations under the License.
  */
 
+import { importerEvents } from './shared/events.js';
+
 const iframe = document.querySelector('main > iframe');
 
 const runtime = {};
@@ -30,6 +32,7 @@ function sendRuntime(obj) {
   if (iframe.contentDocument) {
     attachRuntime();
   }
+  importerEvents.emit('onRuntime', runtime);
 }
 
 function sendMessage(msg) {

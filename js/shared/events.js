@@ -26,5 +26,9 @@ class ImporterEvents extends EventTarget {
   }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export const importerEvents = new ImporterEvents();
+const importerEvents = new ImporterEvents();
+
+export {
+  // eslint-disable-next-line import/prefer-default-export
+  importerEvents,
+};

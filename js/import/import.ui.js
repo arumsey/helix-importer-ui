@@ -10,6 +10,7 @@
  * governing permissions and limitations under the License.
  */
 /* global WebImporter */
+import { importerEvents } from '../shared/events.js';
 import { initOptionFields, attachOptionFieldsListeners } from '../shared/fields.js';
 import { getDirectoryHandle, saveFile } from '../shared/filesystem.js';
 import { asyncForEach } from '../shared/utils.js';
@@ -359,6 +360,11 @@ const toggleAssistant = async () => {
 const attachListeners = () => {
   attachOptionFieldsListeners(config.fields, PARENT_SELECTOR);
   attachPreviewListeners(config, PARENT_SELECTOR);
+
+  importerEvents.on('onRuntime', ({ details }) => {
+    const { ims: { isSignedInUser } = {} } = details;
+    ASSISTANT_BUTTON?.setAttribute('disabled', !isSignedInUser);
+  });
 
   config.importer.addListener(async ({ results }) => {
     const frame = getContentFrame();
