@@ -349,16 +349,15 @@ const startImport = async () => {
 };
 
 const toggleAssistant = async () => {
-  if (ASSISTANT_CONTAINER.classList.contains('hidden')) {
+  if (!ASSISTANT_CONTAINER.classList.contains('open')) {
     const handle = await getDirectoryHandle();
     if (handle) {
-      PREVIEW_CONTAINER.classList.add('hidden');
-      ASSISTANT_CONTAINER.classList.remove('hidden');
+      ASSISTANT_CONTAINER.classList.add('open');
       const assistantConfig = { origin: config.origin, fields: config.fields, dirHandle: handle };
       renderAssistant(assistantConfig);
     }
   } else {
-    ASSISTANT_CONTAINER.classList.add('hidden');
+    ASSISTANT_CONTAINER.classList.remove('open');
   }
 };
 

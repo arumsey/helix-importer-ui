@@ -13,6 +13,7 @@ import '@spectrum-web-components/icons-workflow/icons/sp-icon-contrast.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-magic-wand.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-alert-circle-filled.js';
 import '@spectrum-web-components/icons-workflow/icons/sp-icon-send.js';
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-close.js';
 
 import '@spectrum-web-components/tabs/sp-tabs.js';
 import '@spectrum-web-components/tabs/sp-tab.js';

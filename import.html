@@ -47,8 +47,21 @@
                             <p>Prepare an import script for migrating your site content.</p>
                         </sp-contextual-help>
                     </div>
-                    <sp-divider size="l"></sp-divider>
+                    <div style="display: flex; align-items: center; gap: 4px">
+                        <sp-button id="import-assistant-button" variant="secondary" label="Import Assistant" icon-only>
+                            <sp-icon-magic-wand slot="icon"></sp-icon-magic-wand>
+                        </sp-button>
+                        <sp-contextual-help placement="bottom-start">
+                            <h2 slot="heading">Import Assistant</h2>
+                            <p>
+                                Use the import assistant to help with the automatic generation of an import script.
+                                The assistant will guide you through the process of preparing a document for importing to AEM.
+                            </p>
+                            <p>The import assistant requires permission to access the filesystem where generated files can be saved.</p>
+                        </sp-contextual-help>
+                    </div>
                 </div>
+                <sp-divider size="l"></sp-divider>
                 <div class="section-cols">
                     <div class="section-col">
                         <form class="import-form">
@@ -97,20 +110,6 @@
                             <div id="import-action-row">
                                 <sp-button-group>
                                     <sp-button id="import-doimport-button">Import</sp-button>
-                                    <div style="display: flex; align-items: center; gap: 4px">
-                                        <sp-button id="import-assistant-button" variant="primary">
-                                            <sp-icon-magic-wand slot="icon"></sp-icon-magic-wand>
-                                            Assistant
-                                        </sp-button>
-                                        <sp-contextual-help placement="bottom-start">
-                                            <h2 slot="heading">Import Assistant</h2>
-                                            <p>
-                                                Use the import assistant to help with the automatic generation of an import script.
-                                                The assistant will guide you through the process of preparing a document for importing to AEM.
-                                            </p>
-                                            <p>The import assistant requires permission to access the filesystem where generated files can be saved.</p>
-                                        </sp-contextual-help>
-                                    </div>
                                 </sp-button-group>
                                 <div id="transformation-file-default" class="hidden">
                                     <sp-status-light size="s" variant="notice">The default transformation file is being used</sp-status-light>
@@ -122,10 +121,6 @@
                             <sp-divider size="s"></sp-divider>
                             <h3>Page preview</h3>
                             <iframe id="import-content-frame"></iframe>
-                        </div>
-                        <div class="page-assistant hidden">
-                            <sp-divider size="s"></sp-divider>
-                            <div id="assistant-container"></div>
                         </div>
                     </div>
                     <div class="section-col">
@@ -157,6 +152,9 @@
                         <sp-button-group>
                             <sp-button id="import-downloadImportReport" class="hidden">Download import report</sp-button>
                         </sp-button-group>
+                    </div>
+                    <div class="page-assistant">
+                        <div id="assistant-container"></div>
                     </div>
                 </div>
             </section>

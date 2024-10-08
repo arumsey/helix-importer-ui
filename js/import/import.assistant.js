@@ -21,9 +21,16 @@ function Assistant({ config }) {
 
   const configContext = useMemo(() => ({ assistantConfig, setAssistantConfig }), [assistantConfig]);
 
+  const closeAssistant = (event) => {
+    event.currentTarget.closest('.page-assistant').classList.toggle('open');
+  };
+
   return html`
       <${AssistantProvider} value=${configContext}>
         <div class="import-assistant">
+            <sp-action-button quiet onClick=${closeAssistant}>
+                <sp-icon-close slot="icon"></sp-icon-close>
+            </sp-action-button>            
             ${assistantConfig.dirHandle && html`<${AssistantForm} />`}
         </div>
       </AssistantProvider>

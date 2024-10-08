@@ -1,10 +1,32 @@
 
 .import .page-assistant {
-  margin: var(--spectrum-global-dimension-size-250) 0;
+  position: fixed;
+  top: 0;
+  right: -500px;
+  width: 500px;
+  height: 100%;
+  background-color: var(--spectrum-global-color-gray-100);
+  padding: 0 var(--spectrum-global-dimension-size-350);;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+  transition: right 0.3s ease;
+  z-index: 1000;
+}
+
+.import .page-assistant.open {
+  right: 0;
 }
 
 .import #assistant-container {
   margin-top: var(--spectrum-global-dimension-size-250);
+}
+
+.import .import-assistant {
+  position: relative;
+}
+
+.import .import-assistant > sp-action-button {
+  position: absolute;
+  right: 0;
 }
 
 .import .assistant-form {
